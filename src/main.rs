@@ -9,6 +9,7 @@ use std::rc::Rc;
 // TODO MC
 
 mod camera;
+mod material;
 mod ray;
 mod sphere;
 mod traceable;
@@ -17,6 +18,7 @@ mod vec3;
 mod world;
 
 use crate::camera::Camera;
+use crate::material::{Lambert, Metal};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::traceable::{RayHit, Traceable};
@@ -32,15 +34,20 @@ fn trace_ray(r: &Ray, world: &World, depth: i32) -> Color {
   }
 
   let mut hit = RayHit::new();
-  // TODO not infinity, causes z-fighting
   if world.hit(r, ACNE_CORRECTION, f32::INFINITY, &mut hit) {
-    // return Color::new(1.0, 0.0, 0.0);
-    // return (hit.normal + Color::new(1.0, 1.0, 1.0)) * 0.5;
-    let target = hit.p + hit.normal + Vec3::rand_unit();
-    let new_ray = Ray::new(hit.p, target - hit.p);
-    return trace_ray(&new_ray, world, depth - 1) * 0.5;
+    let mut scattered = Ray::new(hit.p, hit.normal);
+    let mut attenuation = Color::zero();
+    let should_bounce = hit
+      .material
+      .scatter(r, &hit, &mut attenuation, &mut scattered);
+    if should_bounce {
+      return attenuation * trace_ray(&scattered, world, depth - 1);
+    }
+
+    return attenuation;
   }
 
+  // return background
   let unit_direction = r.dir.unit_vector();
   let t = to_0_1(unit_direction.y());
   lerp_vec3(Color::new(1.0, 1.0, 1.0), Color::new(0.5, 0.7, 1.0), t)
@@ -61,10 +68,27 @@ fn main() {
   ///////////////////////
   // World
   let mut world = World::new();
-  let s1 = Sphere::new(Point3d::new(0.0, 0.0, -1.0), 0.5);
-  let s2 = Sphere::new(Point3d::new(0.0, -100.5, -1.0), 100.0); // ground;
+  let mat_grey = Rc::new(Lambert {
+    albedo: Vec3::uni(0.7),
+  });
+  let mat_blue = Rc::new(Lambert {
+    albedo: Vec3::new(0.3, 0.3, 0.7),
+  });
+  let mat_metal = Rc::new(Metal {
+    albedo: Vec3::uni(0.8),
+    roughness: 0.2,
+  });
+  // let mat_grey = Rc::new(SolidColor {
+  // color: Vec3::uni(0.7),
+  // });
+  let s1 = Sphere::new(Point3d::new(0.0, 0.0, -1.0), 0.5, mat_grey);
+  let s_ground = Sphere::new(Point3d::new(0.0, -100.5, -1.0), 100.0, mat_blue); // ground;
+  let s_left = Sphere::new(Point3d::new(-1.0, 0.0, -1.0), 0.5, mat_metal.clone());
+  let s_right = Sphere::new(Point3d::new(1.0, 0.0, -1.0), 0.5, mat_metal.clone());
   world.add(Rc::new(s1));
-  world.add(Rc::new(s2));
+  world.add(Rc::new(s_ground));
+  world.add(Rc::new(s_left));
+  world.add(Rc::new(s_right));
 
   ///////////////////////
   // Camera

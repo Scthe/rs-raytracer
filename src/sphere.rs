@@ -1,16 +1,23 @@
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::traceable::{RayHit, Traceable};
 use crate::vec3::Point3d;
+use std::rc::Rc;
 
-#[derive(Clone, Debug, Copy)]
+#[derive(Clone, Debug)]
 pub struct Sphere {
   pub center: Point3d,
   pub radius: f32,
+  pub material: Rc<dyn Material>,
 }
 
 impl Sphere {
-  pub fn new(center: Point3d, radius: f32) -> Sphere {
-    Sphere { center, radius }
+  pub fn new(center: Point3d, radius: f32, material: Rc<dyn Material>) -> Sphere {
+    Sphere {
+      center,
+      radius,
+      material,
+    }
   }
 }
 
@@ -52,6 +59,7 @@ impl Traceable for Sphere {
 
     hit.t = root;
     hit.p = r.at(hit.t);
+    hit.material = self.material.clone();
     let normal = (hit.p - self.center).unit_vector();
     hit.set_face_normal(r, normal);
     true

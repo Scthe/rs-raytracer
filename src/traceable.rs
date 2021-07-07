@@ -1,13 +1,20 @@
+use crate::material::{Material, SolidColor};
 use crate::ray::Ray;
-use crate::vec3::{Point3d, Vec3};
+use crate::vec3::{Color, Point3d, Vec3};
+use std::rc::Rc;
 
-#[derive(Clone, Debug, Copy)]
+#[derive(Clone, Debug)]
 pub struct RayHit {
   pub p: Point3d,
   pub normal: Vec3,
   pub t: f32,
   pub front_face: bool,
+  pub material: Rc<dyn Material>,
 }
+
+static DEFAULT_MATERIAL: SolidColor = SolidColor {
+  color: Color::new(1.0, 1.0, 0.0),
+};
 
 impl RayHit {
   pub fn new() -> RayHit {
@@ -16,6 +23,7 @@ impl RayHit {
       normal: Vec3::up(),
       t: f32::NAN,
       front_face: false,
+      material: Rc::new(DEFAULT_MATERIAL.clone()), // TODO ugh, a new copy?
     }
   }
 

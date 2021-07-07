@@ -14,16 +14,20 @@ pub struct Vec3 {
 
 #[allow(dead_code)]
 impl Vec3 {
-  pub fn new(a: Num, b: Num, c: Num) -> Vec3 {
+  pub const fn new(a: Num, b: Num, c: Num) -> Vec3 {
     Vec3 { e: [a, b, c] }
   }
 
+  pub fn uni(v: f32) -> Vec3 {
+    Vec3::new(v, v, v)
+  }
+
   pub fn zero() -> Vec3 {
-    Vec3::new(0.0, 0.0, 0.0)
+    Vec3::uni(0.0)
   }
 
   pub fn one() -> Vec3 {
-    Vec3::new(1.0, 1.0, 1.0)
+    Vec3::uni(1.0)
   }
 
   pub fn rand_unit() -> Vec3 {
@@ -61,6 +65,13 @@ impl Vec3 {
 
   pub fn length_squared(&self) -> Num {
     self.dot(*self)
+  }
+
+  // Return true if the vector is close to zero in all dimensions.
+  pub fn near_zero(&self) -> bool {
+    let eps = 1e-8;
+    let is_smol = |x: f32| -> bool { x.abs() < eps };
+    is_smol(self.x()) && is_smol(self.y()) && is_smol(self.z())
   }
 
   pub fn dot(&self, v: Vec3) -> Num {
@@ -117,6 +128,13 @@ impl Mul<Num> for Vec3 {
   type Output = Self;
   fn mul(self, rhs: Num) -> Self {
     Self::new(self.x() * rhs, self.y() * rhs, self.z() * rhs)
+  }
+}
+
+impl Mul<Vec3> for Vec3 {
+  type Output = Self;
+  fn mul(self, rhs: Vec3) -> Self {
+    Self::new(self.x() * rhs.x(), self.y() * rhs.y(), self.z() * rhs.z())
   }
 }
 
