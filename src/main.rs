@@ -7,7 +7,7 @@ use std::rc::Rc;
 // TODO Sintel
 // TODO MC
 
-// mod camera;
+mod camera;
 mod ray;
 mod sphere;
 mod traceable;
@@ -15,6 +15,7 @@ mod utils;
 mod vec3;
 mod world;
 
+use crate::camera::Camera;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::traceable::{RayHit, Traceable};
@@ -48,6 +49,7 @@ fn main() {
   // error!("log::error");
 
   ///////////////////////
+  // World
   let mut world = World::new();
   let s1 = Sphere::new(Point3d::new(0.0, 0.0, -1.0), 0.5);
   let s2 = Sphere::new(Point3d::new(0.0, -100.5, -1.0), 100.0); // ground;
@@ -55,34 +57,29 @@ fn main() {
   world.add(Rc::new(s2));
 
   ///////////////////////
-  // Image
+  // Camera
   let aspect_ratio = 16.0 / 9.0;
+  let camera = Camera::new(
+    Point3d::new(0.0, 0.0, 0.0),
+    Point3d::forward(),
+    Vec3::up(),
+    90.0,
+    aspect_ratio,
+  );
+
+  ///////////////////////
+  // Image
   let image_width: usize = 400;
   let image_height: usize = (image_width as f32 / aspect_ratio) as usize;
-
-  // Camera
-  let viewport_height = 2.0;
-  let viewport_width = aspect_ratio * viewport_height;
-  let focal_length = 1.0;
-
-  let origin = Point3d::new(0.0, 0.0, 0.0); // camera pos
-  let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
-  let vertical = Vec3::new(0.0, viewport_height, 0.0);
-  // 3d coordinates of lower left corner
-  let lower_left_corner =
-    origin - (horizontal / 2.0) - (vertical / 2.0) - Vec3::new(0.0, 0.0, focal_length);
-
-  // Render
   let mut img = image::RgbImage::new(image_width as u32, image_height as u32);
 
+  ///////////////////////
+  // Render
   for x in 0..image_width {
     for y in 0..image_height {
       let u = x as f32 / (image_width as f32 - 1.0);
       let v = y as f32 / (image_height as f32 - 1.0);
-      let r = Ray::new(
-        origin,
-        lower_left_corner + horizontal * u + vertical * v - origin,
-      );
+      let r = camera.get_ray(u, v);
       let pixel_color = trace_ray(&r, &world);
       img.put_pixel(
         x as u32,
@@ -91,7 +88,9 @@ fn main() {
       );
     }
   }
-  img.save("output.png").unwrap();
 
+  ///////////////////////
+  // Save output
+  img.save("output.png").unwrap();
   info!("-- DONE --");
 }

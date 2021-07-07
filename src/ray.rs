@@ -10,7 +10,10 @@ pub struct Ray {
 
 impl Ray {
   pub fn new(origin: Point3d, dir: Vec3) -> Ray {
-    Ray { origin, dir }
+    Ray {
+      origin,
+      dir: dir.unit_vector(),
+    }
   }
 
   pub fn at(self, t: f32) -> Point3d {
