@@ -1,0 +1,47 @@
+[package]
+name = "rs-raytracer"
+version = "0.1.0"
+authors = ["Scthe <marcin1113C@gmail.com>"]
+edition = "2018"
+description = ""
+repository = "https://github.com/scthe/rs-raytracer"
+license = "MIT"
+
+[profile.release]
+lto = true
+codegen-units = 1
+
+[profile.dev]
+# I don't use debugger and it cuts .exe size in half
+debug = 0
+
+
+[dependencies]
+assert_approx_eq = "1.1.0"
+image = "0.23.14" # for writing the output image
+rand = "0.8.4"
+
+# --LOGGING
+log = "^0.4"
+simple_logger = "^1.11.0"
+# --MATH
+# glam = { version = "^0.11.0", features = ["debug-glam-assert"] }
+# --DOT ENV
+# dotenv = "0.15.0"
+# --PROFILER
+# superluminal-perf = "0.1.0"
+# --IMPLEMENT DEBUG/DEFAULT/CLONE ETC.
+# derivative = "2.1.1"
+# --WINDOW INIT
+# winit = "^0.23.0"
+# --WINDOWS API
+# winapi = "^0.3.9"
+# --SDL2
+# sdl2 = "0.34.3"
+# --LIBC
+# libc = "^0.2.80"
+# --IMGUI
+# imgui-sys
+# imgui
+# --PROGRESS BAR
+# pbr = "1.0.4"
