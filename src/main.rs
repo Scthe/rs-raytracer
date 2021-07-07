@@ -18,7 +18,7 @@ mod vec3;
 mod world;
 
 use crate::camera::Camera;
-use crate::material::{Lambert, Metal};
+use crate::material::{Dielectric, Lambert, Metal};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::traceable::{RayHit, Traceable};
@@ -68,8 +68,9 @@ fn main() {
   ///////////////////////
   // World
   let mut world = World::new();
-  let mat_grey = Rc::new(Lambert {
-    albedo: Vec3::uni(0.7),
+  let mat_grey = Rc::new(Dielectric {
+    // albedo: Vec3::uni(0.7),
+    ior: 1.5,
   });
   let mat_blue = Rc::new(Lambert {
     albedo: Vec3::new(0.3, 0.3, 0.7),
