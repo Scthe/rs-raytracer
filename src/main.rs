@@ -67,25 +67,24 @@ fn main() {
 
   ///////////////////////
   // World
-  let mut world = World::new();
-  let mat_grey = Rc::new(Dielectric {
-    // albedo: Vec3::uni(0.7),
-    ior: 1.5,
+  let mat_grey = Rc::new(Lambert {
+    albedo: Vec3::uni(0.7),
   });
-  let mat_blue = Rc::new(Lambert {
+  let mat_ground = Rc::new(Lambert {
     albedo: Vec3::new(0.3, 0.3, 0.7),
   });
   let mat_metal = Rc::new(Metal {
     albedo: Vec3::uni(0.8),
     roughness: 0.2,
   });
-  // let mat_grey = Rc::new(SolidColor {
-  // color: Vec3::uni(0.7),
-  // });
+  let mat_glass = Rc::new(Dielectric { ior: 1.5 });
+
+  //
+  let mut world = World::new();
   let s1 = Sphere::new(Point3d::new(0.0, 0.0, -1.0), 0.5, mat_grey);
-  let s_ground = Sphere::new(Point3d::new(0.0, -100.5, -1.0), 100.0, mat_blue); // ground;
+  let s_ground = Sphere::new(Point3d::new(0.0, -100.5, -1.0), 100.0, mat_ground); // ground;
   let s_left = Sphere::new(Point3d::new(-1.0, 0.0, -1.0), 0.5, mat_metal.clone());
-  let s_right = Sphere::new(Point3d::new(1.0, 0.0, -1.0), 0.5, mat_metal.clone());
+  let s_right = Sphere::new(Point3d::new(1.0, 0.0, -1.0), 0.5, mat_glass.clone());
   world.add(Rc::new(s1));
   world.add(Rc::new(s_ground));
   world.add(Rc::new(s_left));
@@ -94,12 +93,19 @@ fn main() {
   ///////////////////////
   // Camera
   let aspect_ratio = 16.0 / 9.0;
+  let cam_position = Point3d::new(3.0, 3.0, 2.0) / 15.0; // Point3d::zero(),
+  let cam_look_at = Point3d::new(0.0, 0.0, -1.0); // Point3d::forward(),
+  let dist_to_focus = (cam_position - cam_look_at).length();
+  let aperture = 2.0;
+  let cam_fov = 90.0;
   let camera = Camera::new(
-    Point3d::new(0.0, 0.0, 0.0),
-    Point3d::forward(),
+    cam_position,
+    cam_look_at,
     Vec3::up(),
-    90.0,
+    cam_fov,
     aspect_ratio,
+    aperture,
+    dist_to_focus,
   );
 
   ///////////////////////

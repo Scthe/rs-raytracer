@@ -68,6 +68,15 @@ pub fn random_in_unit_sphere() -> Point3d {
   )
 }
 
+// https://mathworld.wolfram.com/DiskPointPicking.html
+pub fn random_in_disk(r: f32) -> Point3d {
+  let r_sqrt = r.sqrt();
+  let mut rng = rand::thread_rng();
+  let theta = rng.gen_range(0.0..(2.0 * std::f32::consts::PI));
+
+  Point3d::new(r_sqrt * theta.cos(), r_sqrt * theta.sin(), 0.0)
+}
+
 pub fn gamma_correct(col: Color, gamma: f32) -> Color {
   Color::new(
     col.x().powf(1.0 / gamma),
