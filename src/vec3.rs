@@ -1,6 +1,8 @@
 use std::fmt;
 use std::ops::*;
 
+use crate::utils::random_in_unit_sphere;
+
 type Num = f32;
 pub type Point3d = Vec3; // 3D point
 pub type Color = Vec3; // RGB color
@@ -18,6 +20,14 @@ impl Vec3 {
 
   pub fn zero() -> Vec3 {
     Vec3::new(0.0, 0.0, 0.0)
+  }
+
+  pub fn one() -> Vec3 {
+    Vec3::new(1.0, 1.0, 1.0)
+  }
+
+  pub fn rand_unit() -> Vec3 {
+    random_in_unit_sphere().unit_vector()
   }
 
   pub fn right() -> Vec3 {

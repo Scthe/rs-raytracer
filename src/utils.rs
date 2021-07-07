@@ -1,4 +1,5 @@
 use crate::vec3::{Color, Point3d, Vec3};
+use rand::{thread_rng, Rng};
 
 /// change number in -1..1 range to 0..1
 pub fn to_0_1(v: f32) -> f32 {
@@ -19,4 +20,24 @@ pub fn color_f32_to_u8(col: Color) -> [u8; 3] {
     clamp(col[1] * 255.999, 0.0, 255.0) as u8,
     clamp(col[2] * 255.999, 0.0, 255.0) as u8,
   ]
+}
+
+pub fn random_in_unit_sphere() -> Point3d {
+  let mut rng = rand::thread_rng();
+  let u = rng.gen_range(-1.0..=1.0);
+  let theta = rng.gen_range(0.0..(2.0 * std::f32::consts::PI));
+
+  Point3d::new(
+    (1.0f32 - u * u).sqrt() * theta.cos(),
+    (1.0f32 - u * u).sqrt() * theta.sin(),
+    u,
+  )
+}
+
+pub fn gamma_correct(col: Color, gamma: f32) -> Color {
+  Color::new(
+    col.x().powf(1.0 / gamma),
+    col.y().powf(1.0 / gamma),
+    col.z().powf(1.0 / gamma),
+  )
 }

@@ -20,16 +20,25 @@ use crate::camera::Camera;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::traceable::{RayHit, Traceable};
-use crate::utils::{color_f32_to_u8, lerp_vec3, to_0_1};
+use crate::utils::{color_f32_to_u8, gamma_correct, lerp_vec3, random_in_unit_sphere, to_0_1};
 use crate::vec3::{Color, Point3d, Vec3};
 use crate::world::World;
 
-fn trace_ray(r: &Ray, world: &World) -> Color {
+const ACNE_CORRECTION: f32 = 0.001;
+
+fn trace_ray(r: &Ray, world: &World, depth: i32) -> Color {
+  if depth <= 0 {
+    return Color::zero();
+  }
+
   let mut hit = RayHit::new();
   // TODO not infinity, causes z-fighting
-  if world.hit(r, 0.0, f32::INFINITY, &mut hit) {
+  if world.hit(r, ACNE_CORRECTION, f32::INFINITY, &mut hit) {
     // return Color::new(1.0, 0.0, 0.0);
-    return (hit.normal + Color::new(1.0, 1.0, 1.0)) * 0.5;
+    // return (hit.normal + Color::new(1.0, 1.0, 1.0)) * 0.5;
+    let target = hit.p + hit.normal + Vec3::rand_unit();
+    let new_ray = Ray::new(hit.p, target - hit.p);
+    return trace_ray(&new_ray, world, depth - 1) * 0.5;
   }
 
   let unit_direction = r.dir.unit_vector();
@@ -77,6 +86,7 @@ fn main() {
   ///////////////////////
   // Render
   let samples_per_pixel: usize = 5; // spp
+  let sample_max_bounces: i32 = 10;
 
   for x in 0..image_width {
     for y in 0..image_height {
@@ -87,9 +97,10 @@ fn main() {
         let u = (x as f32 + rng.gen::<f32>()) / (image_width as f32 - 1.0);
         let v = (y as f32 + rng.gen::<f32>()) / (image_height as f32 - 1.0);
         let r = camera.get_ray(u, v);
-        pixel_color = pixel_color + trace_ray(&r, &world);
+        pixel_color = pixel_color + trace_ray(&r, &world, sample_max_bounces);
       }
       pixel_color = pixel_color / (samples_per_pixel as f32);
+      pixel_color = gamma_correct(pixel_color, 2.2);
 
       img.put_pixel(
         x as u32,
