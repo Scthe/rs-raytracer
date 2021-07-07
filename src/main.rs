@@ -1,4 +1,5 @@
 use log::{error, info, warn};
+use rand::Rng;
 use std::rc::Rc;
 
 // TODO Stratified Sampling
@@ -37,12 +38,12 @@ fn trace_ray(r: &Ray, world: &World) -> Color {
 }
 
 fn main() {
-  println!("Start!");
-
   simple_logger::init().unwrap(); // .filter_level(log::LevelFilter::Debug).init();
+  log::set_max_level(log::LevelFilter::Trace);
+
+  info!("-- START! --");
 
   // pretty_env_logger::init();
-  log::set_max_level(log::LevelFilter::Trace);
   // log::set_max_level(log::LevelFilter::Error);
   // info!("log::infor");
   // warn!("log::warn");
@@ -75,12 +76,21 @@ fn main() {
 
   ///////////////////////
   // Render
+  let samples_per_pixel: usize = 5; // spp
+
   for x in 0..image_width {
     for y in 0..image_height {
-      let u = x as f32 / (image_width as f32 - 1.0);
-      let v = y as f32 / (image_height as f32 - 1.0);
-      let r = camera.get_ray(u, v);
-      let pixel_color = trace_ray(&r, &world);
+      let mut rng = rand::thread_rng();
+      let mut pixel_color = Color::zero();
+
+      for _ in 0..samples_per_pixel {
+        let u = (x as f32 + rng.gen::<f32>()) / (image_width as f32 - 1.0);
+        let v = (y as f32 + rng.gen::<f32>()) / (image_height as f32 - 1.0);
+        let r = camera.get_ray(u, v);
+        pixel_color = pixel_color + trace_ray(&r, &world);
+      }
+      pixel_color = pixel_color / (samples_per_pixel as f32);
+
       img.put_pixel(
         x as u32,
         (image_height - y - 1) as u32,
