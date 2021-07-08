@@ -1,17 +1,19 @@
-use log::{error, info, warn};
+use log::info;
 use rand::Rng;
 use rayon::prelude::*;
-use std::sync::Arc;
 
 // TODO Stratified Sampling
 // TODO opensubdiv
 // TODO all the cool Hyperion tech
 // TODO Sintel
-// TODO MC
+// TODO Monte Carlo/Metropolis etc.
+// TODO SIMD
+// TODO CUDA
 
 mod camera;
 mod material;
 mod ray;
+mod scenes;
 mod sphere;
 mod traceable;
 mod utils;
@@ -19,12 +21,10 @@ mod vec3;
 mod world;
 
 use crate::camera::Camera;
-use crate::material::{Dielectric, Lambert, Metal};
 use crate::ray::Ray;
-use crate::sphere::Sphere;
 use crate::traceable::{RayHit, Traceable};
-use crate::utils::{color_f32_to_u8, gamma_correct, lerp_vec3, random_in_unit_sphere, to_0_1};
-use crate::vec3::{Color, Point3d, Vec3};
+use crate::utils::{color_f32_to_u8, gamma_correct, lerp_vec3, to_0_1};
+use crate::vec3::{Color, Vec3};
 use crate::world::World;
 
 const ACNE_CORRECTION: f32 = 0.001;
@@ -55,7 +55,8 @@ fn trace_ray(r: &Ray, world: &World, depth: i32) -> Color {
 }
 
 fn main() {
-  simple_logger::init().unwrap(); // .filter_level(log::LevelFilter::Debug).init();
+  // simple_logger::init().unwrap(); // .filter_level(log::LevelFilter::Debug).init();
+  simple_logger::SimpleLogger::new().init().unwrap();
   log::set_max_level(log::LevelFilter::Trace);
 
   info!("-- START! --");
@@ -68,38 +69,17 @@ fn main() {
 
   ///////////////////////
   // World
-  let mat_grey = Arc::new(Lambert {
-    albedo: Vec3::uni(0.7),
-  });
-  let mat_ground = Arc::new(Lambert {
-    albedo: Vec3::new(0.3, 0.3, 0.7),
-  });
-  let mat_metal = Arc::new(Metal {
-    albedo: Vec3::uni(0.8),
-    roughness: 0.2,
-  });
-  let mat_glass = Arc::new(Dielectric { ior: 1.5 });
-
-  //
   let mut world = World::new();
-  let s1 = Sphere::new(Point3d::new(0.0, 0.0, -1.0), 0.5, mat_grey);
-  let s_ground = Sphere::new(Point3d::new(0.0, -100.5, -1.0), 100.0, mat_ground); // ground;
-  let s_left = Sphere::new(Point3d::new(-1.0, 0.0, -1.0), 0.5, mat_metal.clone());
-  let s_right = Sphere::new(Point3d::new(1.0, 0.0, -1.0), 0.5, mat_glass.clone());
-  world.add(Arc::new(s1));
-  world.add(Arc::new(s_ground));
-  world.add(Arc::new(s_left));
-  world.add(Arc::new(s_right));
-  // let world_arc = Arc::new(world);
+
+  scenes::scene2::load_scene(&mut world);
+  let (cam_position, cam_look_at) = scenes::scene2::camera();
 
   ///////////////////////
   // Camera
   let aspect_ratio = 16.0 / 9.0;
-  let cam_position = Point3d::new(3.0, 3.0, 2.0) / 15.0; // Point3d::zero(),
-  let cam_look_at = Point3d::new(0.0, 0.0, -1.0); // Point3d::forward(),
   let dist_to_focus = (cam_position - cam_look_at).length();
-  let aperture = 0.1;
-  let cam_fov = 90.0;
+  let aperture = 0.0;
+  let cam_fov = 40.0; // scene1: 90.0
   let camera = Camera::new(
     cam_position,
     cam_look_at,

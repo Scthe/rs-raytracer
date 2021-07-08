@@ -27,6 +27,7 @@ impl RayHit {
     }
   }
 
+  #[allow(dead_code)]
   pub fn has_hit(&self) -> bool {
     !self.t.is_nan()
   }

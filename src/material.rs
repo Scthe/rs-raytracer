@@ -20,10 +20,10 @@ pub struct SolidColor {
 impl Material for SolidColor {
   fn scatter(
     &self,
-    r_in: &Ray,
-    hit: &RayHit,
+    _r_in: &Ray,
+    _hit: &RayHit,
     attenuation: &mut Color,
-    scattered: &mut Ray,
+    _scattered: &mut Ray,
   ) -> bool {
     *attenuation = self.color;
     true
@@ -38,7 +38,7 @@ pub struct Lambert {
 impl Material for Lambert {
   fn scatter(
     &self,
-    r_in: &Ray,
+    _r_in: &Ray,
     hit: &RayHit,
     attenuation: &mut Color,
     scattered: &mut Ray,
@@ -80,6 +80,7 @@ impl Material for Metal {
 // is the least interesting thing about dielectrics TBH.
 #[derive(Clone, Debug)]
 pub struct Dielectric {
+  pub albedo: Color,
   pub ior: f32, // https://en.wikipedia.org/wiki/List_of_refractive_indices
 }
 
@@ -91,7 +92,7 @@ impl Material for Dielectric {
     attenuation: &mut Color,
     scattered: &mut Ray,
   ) -> bool {
-    *attenuation = Color::one();
+    *attenuation = self.albedo; // OR Color::one();
 
     let (ior_from, ior_into) = if hit.front_face {
       (IOR_AIR, self.ior)
@@ -101,7 +102,7 @@ impl Material for Dielectric {
 
     let reflectance_at_angle = reflectance_schlick(r_in.dir, hit.normal, ior_from, ior_into);
     // I don't like this randomness here, but let's do by the book for now..
-    let sample_use_reflect_cause_angle = reflectance_at_angle < rand::random::<f32>();
+    let sample_use_reflect_cause_angle = reflectance_at_angle > rand::random::<f32>();
     let maybe_refracted = refract(r_in.dir, hit.normal, ior_from, ior_into);
 
     let refracted = match maybe_refracted {

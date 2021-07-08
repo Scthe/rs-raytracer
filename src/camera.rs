@@ -1,5 +1,4 @@
 use crate::ray::Ray;
-use crate::traceable::{RayHit, Traceable};
 use crate::utils::random_in_disk;
 use crate::vec3::{Point3d, Vec3};
 
