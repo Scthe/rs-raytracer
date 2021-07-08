@@ -21,6 +21,8 @@ assert_approx_eq = "1.1.0"
 image = "0.23.14" # for writing the output image
 rand = "0.8.4"
 rayon = "1.5.1"
+# DO NOT ADD PROGRESSBARS, IT'S NOT MATURE IN RUST. 25% PENALITY FOR indicatif.
+# EVEN WHEN SAMPLING!!!
 
 # --LOGGING
 log = "^0.4"
@@ -44,5 +46,3 @@ simple_logger = "^1.11.0"
 # --IMGUI
 # imgui-sys
 # imgui
-# --PROGRESS BAR
-# pbr = "1.0.4"
