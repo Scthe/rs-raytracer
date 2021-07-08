@@ -1,11 +1,11 @@
-use std::rc::Rc;
+use std::sync::Arc;
 use std::vec::Vec;
 
 use crate::ray::Ray;
 use crate::traceable::{RayHit, Traceable};
 
 pub struct World {
-  pub objects: Vec<Rc<dyn Traceable>>,
+  pub objects: Vec<Arc<dyn Traceable>>,
 }
 
 impl World {
@@ -19,7 +19,7 @@ impl World {
     self.objects.clear();
   }
 
-  pub fn add(&mut self, obj: Rc<dyn Traceable>) {
+  pub fn add(&mut self, obj: Arc<dyn Traceable>) {
     self.objects.push(obj);
   }
 }

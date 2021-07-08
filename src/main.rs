@@ -1,6 +1,7 @@
 use log::{error, info, warn};
 use rand::Rng;
-use std::rc::Rc;
+use rayon::prelude::*;
+use std::sync::Arc;
 
 // TODO Stratified Sampling
 // TODO opensubdiv
@@ -67,17 +68,17 @@ fn main() {
 
   ///////////////////////
   // World
-  let mat_grey = Rc::new(Lambert {
+  let mat_grey = Arc::new(Lambert {
     albedo: Vec3::uni(0.7),
   });
-  let mat_ground = Rc::new(Lambert {
+  let mat_ground = Arc::new(Lambert {
     albedo: Vec3::new(0.3, 0.3, 0.7),
   });
-  let mat_metal = Rc::new(Metal {
+  let mat_metal = Arc::new(Metal {
     albedo: Vec3::uni(0.8),
     roughness: 0.2,
   });
-  let mat_glass = Rc::new(Dielectric { ior: 1.5 });
+  let mat_glass = Arc::new(Dielectric { ior: 1.5 });
 
   //
   let mut world = World::new();
@@ -85,10 +86,11 @@ fn main() {
   let s_ground = Sphere::new(Point3d::new(0.0, -100.5, -1.0), 100.0, mat_ground); // ground;
   let s_left = Sphere::new(Point3d::new(-1.0, 0.0, -1.0), 0.5, mat_metal.clone());
   let s_right = Sphere::new(Point3d::new(1.0, 0.0, -1.0), 0.5, mat_glass.clone());
-  world.add(Rc::new(s1));
-  world.add(Rc::new(s_ground));
-  world.add(Rc::new(s_left));
-  world.add(Rc::new(s_right));
+  world.add(Arc::new(s1));
+  world.add(Arc::new(s_ground));
+  world.add(Arc::new(s_left));
+  world.add(Arc::new(s_right));
+  // let world_arc = Arc::new(world);
 
   ///////////////////////
   // Camera
@@ -96,7 +98,7 @@ fn main() {
   let cam_position = Point3d::new(3.0, 3.0, 2.0) / 15.0; // Point3d::zero(),
   let cam_look_at = Point3d::new(0.0, 0.0, -1.0); // Point3d::forward(),
   let dist_to_focus = (cam_position - cam_look_at).length();
-  let aperture = 2.0;
+  let aperture = 0.1;
   let cam_fov = 90.0;
   let camera = Camera::new(
     cam_position,
@@ -110,17 +112,19 @@ fn main() {
 
   ///////////////////////
   // Image
-  let image_width: usize = 400;
-  let image_height: usize = (image_width as f32 / aspect_ratio) as usize;
+  let image_width: u32 = 400;
+  let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
   let mut img = image::RgbImage::new(image_width as u32, image_height as u32);
 
   ///////////////////////
   // Render
-  let samples_per_pixel: usize = 5; // spp
+  let samples_per_pixel: usize = 50; // spp
   let sample_max_bounces: i32 = 10;
 
-  for x in 0..image_width {
-    for y in 0..image_height {
+  let data: Vec<(u32, u32, Color)> = (0..(image_width * image_height))
+    .into_par_iter()
+    .map(|v| (v % image_width, v / image_width))
+    .map(|(x, y)| {
       let mut rng = rand::thread_rng();
       let mut pixel_color = Color::zero();
 
@@ -133,12 +137,16 @@ fn main() {
       pixel_color = pixel_color / (samples_per_pixel as f32);
       pixel_color = gamma_correct(pixel_color, 2.2);
 
-      img.put_pixel(
-        x as u32,
-        (image_height - y - 1) as u32,
-        image::Rgb(color_f32_to_u8(pixel_color)),
-      );
-    }
+      (x, y, pixel_color)
+    })
+    .collect();
+
+  for (x, y, pixel_color) in data {
+    img.put_pixel(
+      x as u32,
+      (image_height - y - 1) as u32,
+      image::Rgb(color_f32_to_u8(pixel_color)),
+    );
   }
 
   ///////////////////////

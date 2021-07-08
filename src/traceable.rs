@@ -1,7 +1,7 @@
 use crate::material::{Material, SolidColor};
 use crate::ray::Ray;
 use crate::vec3::{Color, Point3d, Vec3};
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct RayHit {
@@ -9,7 +9,7 @@ pub struct RayHit {
   pub normal: Vec3,
   pub t: f32,
   pub front_face: bool,
-  pub material: Rc<dyn Material>,
+  pub material: Arc<dyn Material>,
 }
 
 static DEFAULT_MATERIAL: SolidColor = SolidColor {
@@ -23,7 +23,7 @@ impl RayHit {
       normal: Vec3::up(),
       t: f32::NAN,
       front_face: false,
-      material: Rc::new(DEFAULT_MATERIAL.clone()), // TODO ugh, a new copy?
+      material: Arc::new(DEFAULT_MATERIAL.clone()), // TODO ugh, a new copy?
     }
   }
 
@@ -41,6 +41,6 @@ impl RayHit {
   }
 }
 
-pub trait Traceable {
+pub trait Traceable: Send + Sync {
   fn hit(&self, ray: &Ray, t_min: f32, t_max: f32, hit: &mut RayHit) -> bool;
 }

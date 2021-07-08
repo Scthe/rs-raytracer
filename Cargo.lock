@@ -407,6 +407,7 @@ dependencies = [
  "image",
  "log",
  "rand",
+ "rayon",
  "simple_logger",
 ]
 

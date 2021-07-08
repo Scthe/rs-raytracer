@@ -20,6 +20,7 @@ debug = 0
 assert_approx_eq = "1.1.0"
 image = "0.23.14" # for writing the output image
 rand = "0.8.4"
+rayon = "1.5.1"
 
 # --LOGGING
 log = "^0.4"

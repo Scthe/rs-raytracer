@@ -2,17 +2,17 @@ use crate::material::Material;
 use crate::ray::Ray;
 use crate::traceable::{RayHit, Traceable};
 use crate::vec3::Point3d;
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct Sphere {
   pub center: Point3d,
   pub radius: f32,
-  pub material: Rc<dyn Material>,
+  pub material: Arc<dyn Material>,
 }
 
 impl Sphere {
-  pub fn new(center: Point3d, radius: f32, material: Rc<dyn Material>) -> Sphere {
+  pub fn new(center: Point3d, radius: f32, material: Arc<dyn Material>) -> Sphere {
     Sphere {
       center,
       radius,

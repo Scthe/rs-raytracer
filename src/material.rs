@@ -7,7 +7,7 @@ use crate::vec3::{Color, Vec3};
 
 const IOR_AIR: f32 = 1.0; // blah, blah, vacuum, blah, blah
 
-pub trait Material: fmt::Debug {
+pub trait Material: fmt::Debug + Send + Sync {
   fn scatter(&self, r_in: &Ray, hit: &RayHit, attenuation: &mut Color, scattered: &mut Ray)
     -> bool;
 }
