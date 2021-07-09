@@ -10,6 +10,7 @@ use rayon::prelude::*;
 // TODO SIMD
 // TODO CUDA
 
+mod aabb;
 mod camera;
 mod material;
 mod ray;
@@ -22,7 +23,7 @@ mod world;
 
 use crate::camera::Camera;
 use crate::ray::Ray;
-use crate::traceable::{RayHit, Traceable};
+use crate::traceable::Traceable;
 use crate::utils::{color_f32_to_u8, gamma_correct, lerp_vec3, to_0_1};
 use crate::vec3::{Color, Vec3};
 use crate::world::World;
@@ -34,24 +35,27 @@ fn trace_ray(r: &Ray, world: &World, depth: i32) -> Color {
     return Color::zero();
   }
 
-  let mut hit = RayHit::new();
-  if world.hit(r, ACNE_CORRECTION, f32::INFINITY, &mut hit) {
-    let mut scattered = Ray::new(hit.p, hit.normal);
-    let mut attenuation = Color::zero();
-    let should_bounce = hit
-      .material
-      .scatter(r, &hit, &mut attenuation, &mut scattered);
-    if should_bounce {
-      return attenuation * trace_ray(&scattered, world, depth - 1);
+  let result = world.check_intersection(r, ACNE_CORRECTION, f32::INFINITY);
+  match result {
+    Some(hit) => {
+      let mut scattered = Ray::new(hit.p, hit.normal);
+      let mut attenuation = Color::zero();
+      let should_bounce = hit
+        .material
+        .scatter(r, &hit, &mut attenuation, &mut scattered);
+      if should_bounce {
+        return attenuation * trace_ray(&scattered, world, depth - 1);
+      }
+
+      return attenuation;
     }
-
-    return attenuation;
-  }
-
-  // return background
-  let unit_direction = r.dir.unit_vector();
-  let t = to_0_1(unit_direction.y());
-  lerp_vec3(Color::new(1.0, 1.0, 1.0), Color::new(0.5, 0.7, 1.0), t)
+    _ => {
+      // return background
+      let unit_direction = r.dir.unit_vector();
+      let t = to_0_1(unit_direction.y());
+      return lerp_vec3(Color::new(1.0, 1.0, 1.0), Color::new(0.5, 0.7, 1.0), t);
+    }
+  };
 }
 
 fn main() {

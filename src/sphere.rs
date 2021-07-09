@@ -1,8 +1,10 @@
+use std::sync::Arc;
+
+use crate::aabb::AABB;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::traceable::{RayHit, Traceable};
-use crate::vec3::Point3d;
-use std::sync::Arc;
+use crate::vec3::{Point3d, Vec3};
 
 #[derive(Clone, Debug)]
 pub struct Sphere {
@@ -22,7 +24,14 @@ impl Sphere {
 }
 
 impl Traceable for Sphere {
-  fn hit(&self, r: &Ray, t_min: f32, t_max: f32, hit: &mut RayHit) -> bool {
+  fn bounding_box(&self) -> Option<AABB> {
+    Some(AABB {
+      min: self.center - Vec3::uni(self.radius),
+      max: self.center + Vec3::uni(self.radius),
+    })
+  }
+
+  fn check_intersection(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<RayHit> {
     // solving quadratic equation wrt. `t`:
     //  $ t² * (b•b)  +  2tb•(A-C)  +  (A-C)•(A-C) - r² = 0;
     // where
@@ -43,7 +52,7 @@ impl Traceable for Sphere {
     let delta = b * b - 4.0 * a * c;
     if delta < 0.0 {
       // no solution == no intersection
-      return false;
+      return None;
     }
     let delta_sqrt = delta.sqrt();
 
@@ -53,15 +62,19 @@ impl Traceable for Sphere {
     if !is_in_range(root) {
       root = (-b + delta_sqrt) / (2.0 * a); // solution 2
       if !is_in_range(root) {
-        return false;
+        return None;
       }
     }
 
-    hit.t = root;
-    hit.p = r.at(hit.t);
-    hit.material = self.material.clone();
-    let normal = (hit.p - self.center).unit_vector();
-    hit.set_face_normal(r, normal);
-    true
+    let hit_point = r.at(root);
+    let normal = (hit_point - self.center).unit_vector();
+    let (front_face, outward_normal) = RayHit::check_is_front_face(r, normal);
+    Some(RayHit {
+      p: hit_point,
+      t: root,
+      normal: outward_normal,
+      front_face,
+      material: self.material.clone(),
+    })
   }
 }

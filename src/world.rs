@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use std::vec::Vec;
 
+use crate::aabb::AABB;
 use crate::ray::Ray;
 use crate::traceable::{RayHit, Traceable};
 
@@ -26,19 +27,35 @@ impl World {
 }
 
 impl Traceable for World {
-  fn hit(&self, r: &Ray, t_min: f32, t_max: f32, hit: &mut RayHit) -> bool {
-    let mut hit_anything = false;
+  fn bounding_box(&self) -> Option<AABB> {
+    let mut result: Option<AABB> = None;
+
+    for object in &self.objects {
+      let obj_aabb = object.bounding_box();
+      result = match (obj_aabb, result) {
+        (None, _) => return None, // cannot have bounding box if some object do not define one
+        (Some(a), None) => Some(a), // first object only
+        (Some(a), Some(b)) => Some(AABB::merge(&a, &b)),
+      };
+    }
+
+    result
+  }
+
+  fn check_intersection(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<RayHit> {
+    let mut result: Option<RayHit> = None;
     let mut closest_so_far = t_max;
 
     for object in &self.objects {
-      let mut temp_rec = RayHit::new();
-      if object.hit(r, t_min, closest_so_far, &mut temp_rec) {
-        hit_anything = true;
-        closest_so_far = temp_rec.t;
-        *hit = temp_rec;
-      }
+      match object.check_intersection(r, t_min, closest_so_far) {
+        None => (),
+        Some(hit_data) => {
+          closest_so_far = hit_data.t;
+          result = Some(hit_data);
+        }
+      };
     }
 
-    hit_anything
+    result
   }
 }
