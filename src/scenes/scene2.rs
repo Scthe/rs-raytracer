@@ -5,10 +5,12 @@ use crate::sphere::Sphere;
 use crate::vec3::{Point3d, Vec3};
 use crate::world::World;
 
+#[allow(dead_code)]
 pub fn camera() -> (Point3d, Point3d) {
   (Point3d::new(0.0, 2.0, 5.0), Point3d::new(0.0, 0.1, 0.0))
 }
 
+#[allow(dead_code)]
 pub fn load_scene(world: &mut World) {
   let mat_ground = Arc::new(Lambert {
     // DO NOT USE SOLID COLOR HERE!

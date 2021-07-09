@@ -11,6 +11,7 @@ use rayon::prelude::*;
 // TODO CUDA
 
 mod aabb;
+mod bvh;
 mod camera;
 mod material;
 mod ray;
@@ -21,6 +22,7 @@ mod utils;
 mod vec3;
 mod world;
 
+use crate::bvh::BVHNode;
 use crate::camera::Camera;
 use crate::ray::Ray;
 use crate::traceable::Traceable;
@@ -30,7 +32,7 @@ use crate::world::World;
 
 const ACNE_CORRECTION: f32 = 0.001;
 
-fn trace_ray(r: &Ray, world: &World, depth: i32) -> Color {
+fn trace_ray(r: &Ray, world: &dyn Traceable, depth: i32) -> Color {
   if depth <= 0 {
     return Color::zero();
   }
@@ -65,18 +67,16 @@ fn main() {
 
   info!("-- START! --");
 
-  // pretty_env_logger::init();
-  // log::set_max_level(log::LevelFilter::Error);
-  // info!("log::infor");
-  // warn!("log::warn");
-  // error!("log::error");
-
   ///////////////////////
   // World
   let mut world = World::new();
+  scenes::scene3::load_scene(&mut world);
+  let (cam_position, cam_look_at) = scenes::scene3::camera();
 
-  scenes::scene2::load_scene(&mut world);
-  let (cam_position, cam_look_at) = scenes::scene2::camera();
+  ///////////////////////
+  // BVH
+  info!("-- Building BVH --");
+  let bvh = BVHNode::build(&world);
 
   ///////////////////////
   // Camera
@@ -95,15 +95,13 @@ fn main() {
   );
 
   ///////////////////////
-  // Image
+  // Render
+  info!("-- Tracing rays --");
+  let samples_per_pixel: usize = 50; // spp
+  let sample_max_bounces: i32 = 10;
   let image_width: u32 = 400;
   let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
   let mut img = image::RgbImage::new(image_width as u32, image_height as u32);
-
-  ///////////////////////
-  // Render
-  let samples_per_pixel: usize = 50; // spp
-  let sample_max_bounces: i32 = 10;
 
   let data: Vec<(u32, u32, Color)> = (0..(image_width * image_height))
     .into_par_iter()
@@ -116,7 +114,7 @@ fn main() {
         let u = (x as f32 + rng.gen::<f32>()) / (image_width as f32 - 1.0);
         let v = (y as f32 + rng.gen::<f32>()) / (image_height as f32 - 1.0);
         let r = camera.get_ray(u, v);
-        pixel_color = pixel_color + trace_ray(&r, &world, sample_max_bounces);
+        pixel_color = pixel_color + trace_ray(&r, &bvh, sample_max_bounces);
       }
       pixel_color = pixel_color / (samples_per_pixel as f32);
       pixel_color = gamma_correct(pixel_color, 2.2);
@@ -125,6 +123,7 @@ fn main() {
     })
     .collect();
 
+  info!("-- Collecting output --");
   for (x, y, pixel_color) in data {
     img.put_pixel(
       x as u32,

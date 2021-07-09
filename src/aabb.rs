@@ -10,7 +10,7 @@ use crate::vec3::Point3d;
  * just call it
  * `Axis Aligned Bounding Box` - AABB
  */
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub struct AABB {
   pub min: Point3d,
   pub max: Point3d,
@@ -32,7 +32,7 @@ impl AABB {
     }
   }
 
-  pub fn hit(&self, r: &Ray, t_min_: f32, t_max_: f32) -> bool {
+  pub fn check_intersection(&self, r: &Ray, t_min_: f32, t_max_: f32) -> bool {
     let mut t_min = t_min_;
     let mut t_max = t_max_;
 

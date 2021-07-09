@@ -5,8 +5,11 @@ use crate::aabb::AABB;
 use crate::ray::Ray;
 use crate::traceable::{RayHit, Traceable};
 
+/** Used to store all traceables in the world */
+pub type WorldObjectsList = Vec<Arc<dyn Traceable>>;
+
 pub struct World {
-  pub objects: Vec<Arc<dyn Traceable>>,
+  pub objects: WorldObjectsList,
 }
 
 impl World {
