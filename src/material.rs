@@ -4,31 +4,53 @@ use std::sync::Arc;
 use crate::ray::Ray;
 use crate::texture::{SolidColorTex, Texture};
 use crate::traceable::RayHit;
-use crate::utils::{clamp, reflect, reflectance_schlick, refract};
+use crate::utils::{reflect, reflectance_schlick, refract};
 use crate::vec3::{Color, Vec3};
 
 const IOR_AIR: f32 = 1.0; // blah, blah, vacuum, blah, blah
 
-pub trait Material: fmt::Debug + Send + Sync {
-  fn scatter(&self, r_in: &Ray, hit: &RayHit, attenuation: &mut Color, scattered: &mut Ray)
-    -> bool;
+pub struct BSDFResult {
+  pub attenuation: Color,
+  pub bounce: Option<Ray>,
 }
 
+impl BSDFResult {
+  pub fn with_normal_bounce(&mut self, hit: &RayHit) -> &mut Self {
+    self.bounce = Some(Ray::new(hit.p, hit.normal));
+    self
+  }
+}
+
+impl Default for BSDFResult {
+  fn default() -> Self {
+    BSDFResult {
+      attenuation: Color::zero(),
+      bounce: None,
+    }
+  }
+}
+
+///////////////////////
+// Material
+pub trait Material: fmt::Debug + Send + Sync {
+  fn bsdf(&self, r_in: &Ray, hit: &RayHit) -> BSDFResult;
+}
+
+///////////////////////
+// Solid color
 #[derive(Clone, Debug)]
 pub struct SolidColor {
   pub color: Color,
 }
 
 impl Material for SolidColor {
-  fn scatter(
-    &self,
-    _r_in: &Ray,
-    _hit: &RayHit,
-    attenuation: &mut Color,
-    _scattered: &mut Ray,
-  ) -> bool {
-    *attenuation = self.color;
-    true
+  fn bsdf(&self, _r_in: &Ray, hit: &RayHit) -> BSDFResult {
+    let mut result = BSDFResult {
+      attenuation: self.color,
+      ..Default::default()
+    };
+    result.with_normal_bounce(hit);
+    result
   }
 }
 
@@ -52,21 +74,17 @@ impl Lambert {
 }
 
 impl Material for Lambert {
-  fn scatter(
-    &self,
-    _r_in: &Ray,
-    hit: &RayHit,
-    attenuation: &mut Color,
-    scattered: &mut Ray,
-  ) -> bool {
+  fn bsdf(&self, _r_in: &Ray, hit: &RayHit) -> BSDFResult {
     let mut scatter_direction = hit.normal + Vec3::rand_unit();
     if scatter_direction.near_zero() {
       scatter_direction = hit.normal;
     }
 
-    *scattered = Ray::new(hit.p, scatter_direction);
-    *attenuation = self.albedo.sample(hit);
-    true
+    BSDFResult {
+      attenuation: self.albedo.sample(hit),
+      bounce: Some(Ray::new(hit.p, scatter_direction)),
+      ..Default::default()
+    }
   }
 }
 
@@ -79,18 +97,19 @@ pub struct Metal {
 }
 
 impl Material for Metal {
-  fn scatter(
-    &self,
-    r_in: &Ray,
-    hit: &RayHit,
-    attenuation: &mut Color,
-    scattered: &mut Ray,
-  ) -> bool {
+  fn bsdf(&self, r_in: &Ray, hit: &RayHit) -> BSDFResult {
     let reflected = reflect(r_in.dir, hit.normal);
-    let roughness_scatter = Vec3::rand_unit() * clamp(self.roughness, 0.0, 1.0);
-    *scattered = Ray::new(hit.p, reflected + roughness_scatter);
-    *attenuation = self.albedo;
-    scattered.dir.dot(hit.normal) > 0.0
+    let roughness_scatter = Vec3::rand_unit() * self.roughness.clamp(0.0, 1.0);
+    let scattered = Ray::new(hit.p, reflected + roughness_scatter);
+
+    let mut result = BSDFResult {
+      attenuation: self.albedo,
+      ..Default::default()
+    };
+    if scattered.dir.dot(hit.normal) > 0.0 {
+      result.bounce = Some(scattered)
+    }
+    result
   }
 }
 
@@ -106,15 +125,7 @@ pub struct Dielectric {
 }
 
 impl Material for Dielectric {
-  fn scatter(
-    &self,
-    r_in: &Ray,
-    hit: &RayHit,
-    attenuation: &mut Color,
-    scattered: &mut Ray,
-  ) -> bool {
-    *attenuation = self.albedo; // OR Color::one();
-
+  fn bsdf(&self, r_in: &Ray, hit: &RayHit) -> BSDFResult {
     let (ior_from, ior_into) = if hit.front_face {
       (IOR_AIR, self.ior)
     } else {
@@ -131,7 +142,10 @@ impl Material for Dielectric {
       _ => reflect(r_in.dir, hit.normal),
     };
 
-    *scattered = Ray::new(hit.p, refracted);
-    true
+    BSDFResult {
+      attenuation: self.albedo,
+      bounce: Some(Ray::new(hit.p, refracted)),
+      ..Default::default()
+    }
   }
 }

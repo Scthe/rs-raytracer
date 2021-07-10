@@ -13,6 +13,7 @@ use rayon::prelude::*;
 mod aabb;
 mod bvh;
 mod camera;
+// mod light;
 mod material;
 mod ray;
 mod scenes;
@@ -41,16 +42,15 @@ fn trace_ray(r: &Ray, world: &dyn Traceable, depth: i32) -> Color {
   let result = world.check_intersection(r, ACNE_CORRECTION, f32::INFINITY);
   match result {
     Some(hit) => {
-      let mut scattered = Ray::new(hit.p, hit.normal);
-      let mut attenuation = Color::zero();
-      let should_bounce = hit
-        .material
-        .scatter(r, &hit, &mut attenuation, &mut scattered);
-      if should_bounce {
-        return attenuation * trace_ray(&scattered, world, depth - 1);
+      let bsdf_result = hit.material.bsdf(r, &hit);
+      match bsdf_result.bounce {
+        Some(r) => {
+          return bsdf_result.attenuation * trace_ray(&r, world, depth - 1);
+        }
+        _ => {
+          return bsdf_result.attenuation;
+        }
       }
-
-      return attenuation;
     }
     _ => {
       // return background
@@ -71,8 +71,8 @@ fn main() {
   ///////////////////////
   // World
   let mut world = World::new();
-  scenes::scene4::load_scene(&mut world);
-  let (cam_position, cam_look_at) = scenes::scene4::camera();
+  scenes::scene2::load_scene(&mut world);
+  let (cam_position, cam_look_at) = scenes::scene2::camera();
 
   ///////////////////////
   // BVH
