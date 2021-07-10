@@ -1,3 +1,4 @@
+use log::info;
 use std::sync::Arc;
 
 use crate::material::{Dielectric, Lambert, Metal, SolidColor};
@@ -12,14 +13,12 @@ pub fn camera() -> (Point3d, Point3d) {
 
 #[allow(dead_code)]
 pub fn load_scene(world: &mut World) {
-  let mat_ground = Arc::new(Lambert {
-    // DO NOT USE SOLID COLOR HERE!
-    albedo: Vec3::new(0.15, 0.3, 0.15),
-  });
+  info!("Scene2 is materials test. Metal, glass, lambert diffuse etc.");
+
+  let mat_ground = Arc::new(Lambert::color(0.15, 0.3, 0.15)); // DO NOT USE SOLID COLOR HERE!
+
   let mat_grey = Arc::new(SolidColor { color: Vec3::one() });
-  let mat_blue = Arc::new(Lambert {
-    albedo: Vec3::new(0.4, 0.45, 0.6),
-  });
+  let mat_blue = Arc::new(Lambert::color(0.4, 0.45, 0.6));
   let mat_metal_black = Arc::new(Metal {
     albedo: Vec3::uni(0.2),
     roughness: 0.1,

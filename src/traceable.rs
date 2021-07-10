@@ -7,9 +7,17 @@ use crate::vec3::{Point3d, Vec3};
 
 #[derive(Clone, Debug)]
 pub struct RayHit {
+  /** Point of hit */
   pub p: Point3d,
+  /** Normal at the place of hit. Can point into shape */
   pub normal: Vec3,
+  /** Ray distance from origin */
   pub t: f32,
+  /** Texture coordinate, x-axis */
+  pub u: f32,
+  /** Texture coordinate, y-axis */
+  pub v: f32,
+  /** Is front face */
   pub front_face: bool,
   pub material: Arc<dyn Material>,
 }

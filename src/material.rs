@@ -1,6 +1,8 @@
 use std::fmt;
+use std::sync::Arc;
 
 use crate::ray::Ray;
+use crate::texture::{SolidColorTex, Texture};
 use crate::traceable::RayHit;
 use crate::utils::{clamp, reflect, reflectance_schlick, refract};
 use crate::vec3::{Color, Vec3};
@@ -30,9 +32,23 @@ impl Material for SolidColor {
   }
 }
 
+///////////////////////
+// Lambert
 #[derive(Clone, Debug)]
 pub struct Lambert {
-  pub albedo: Color,
+  pub albedo: Arc<dyn Texture>,
+}
+
+impl Lambert {
+  pub fn color(r: f32, g: f32, b: f32) -> Lambert {
+    Lambert {
+      albedo: Arc::new(SolidColorTex::new(r, g, b)),
+    }
+  }
+
+  pub fn texture(t: Arc<dyn Texture>) -> Lambert {
+    Lambert { albedo: t.clone() }
+  }
 }
 
 impl Material for Lambert {
@@ -49,11 +65,13 @@ impl Material for Lambert {
     }
 
     *scattered = Ray::new(hit.p, scatter_direction);
-    *attenuation = self.albedo;
+    *attenuation = self.albedo.sample(hit);
     true
   }
 }
 
+///////////////////////
+// Metal
 #[derive(Clone, Debug)]
 pub struct Metal {
   pub albedo: Color,
@@ -75,6 +93,9 @@ impl Material for Metal {
     scattered.dir.dot(hit.normal) > 0.0
   }
 }
+
+///////////////////////
+// Dielectric
 
 // Why is glass called dielectric?! I'm following the book here, but this
 // is the least interesting thing about dielectrics TBH.

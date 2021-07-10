@@ -17,6 +17,7 @@ mod material;
 mod ray;
 mod scenes;
 mod sphere;
+mod texture;
 mod traceable;
 mod utils;
 mod vec3;
@@ -70,8 +71,8 @@ fn main() {
   ///////////////////////
   // World
   let mut world = World::new();
-  scenes::scene3::load_scene(&mut world);
-  let (cam_position, cam_look_at) = scenes::scene3::camera();
+  scenes::scene4::load_scene(&mut world);
+  let (cam_position, cam_look_at) = scenes::scene4::camera();
 
   ///////////////////////
   // BVH

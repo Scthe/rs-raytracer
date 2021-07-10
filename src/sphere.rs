@@ -21,6 +21,14 @@ impl Sphere {
       material,
     }
   }
+
+  pub fn get_sphere_uv(normal: &Vec3) -> (f32, f32) {
+    let pi = std::f32::consts::PI;
+    let theta = (-normal.y()).acos();
+    let phi = (-normal.z()).atan2(normal.x()) + pi;
+
+    (phi / (2.0 * pi), theta / pi)
+  }
 }
 
 impl Traceable for Sphere {
@@ -31,6 +39,7 @@ impl Traceable for Sphere {
     })
   }
 
+  #[allow(clippy::many_single_char_names)]
   fn check_intersection(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<RayHit> {
     // solving quadratic equation wrt. `t`:
     //  $ t² * (b•b)  +  2tb•(A-C)  +  (A-C)•(A-C) - r² = 0;
@@ -69,9 +78,12 @@ impl Traceable for Sphere {
     let hit_point = r.at(root);
     let normal = (hit_point - self.center).unit_vector();
     let (front_face, outward_normal) = RayHit::check_is_front_face(r, normal);
+    let (u, v) = Sphere::get_sphere_uv(&outward_normal);
     Some(RayHit {
       p: hit_point,
       t: root,
+      u,
+      v,
       normal: outward_normal,
       front_face,
       material: self.material.clone(),

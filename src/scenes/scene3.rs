@@ -15,10 +15,7 @@ pub fn camera() -> (Point3d, Point3d) {
 pub fn load_scene(world: &mut World) {
   warn!("Scene3 is BVH test. It takes 1min for me with BVH, and I gave up after 1h without");
 
-  let mat_ground = Arc::new(Lambert {
-    // DO NOT USE SOLID COLOR HERE!
-    albedo: Vec3::new(0.15, 0.3, 0.15),
-  });
+  let mat_ground = Arc::new(Lambert::color(0.15, 0.3, 0.15)); // DO NOT USE SOLID COLOR HERE!
 
   // ground
   let s_ground = Sphere::new(Point3d::new(0.0, -1000.45, -1.2), 1000.0, mat_ground);
