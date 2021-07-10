@@ -10,7 +10,8 @@ use crate::vec3::{Color, Vec3};
 const IOR_AIR: f32 = 1.0; // blah, blah, vacuum, blah, blah
 
 pub struct BSDFResult {
-  pub attenuation: Color,
+  pub diffuse: Color,
+  pub emissive: Color,
   pub bounce: Option<Ray>,
 }
 
@@ -24,7 +25,8 @@ impl BSDFResult {
 impl Default for BSDFResult {
   fn default() -> Self {
     BSDFResult {
-      attenuation: Color::zero(),
+      diffuse: Color::zero(),
+      emissive: Color::zero(),
       bounce: None,
     }
   }
@@ -46,7 +48,7 @@ pub struct SolidColor {
 impl Material for SolidColor {
   fn bsdf(&self, _r_in: &Ray, hit: &RayHit) -> BSDFResult {
     let mut result = BSDFResult {
-      attenuation: self.color,
+      diffuse: self.color,
       ..Default::default()
     };
     result.with_normal_bounce(hit);
@@ -58,18 +60,18 @@ impl Material for SolidColor {
 // Lambert
 #[derive(Clone, Debug)]
 pub struct Lambert {
-  pub albedo: Arc<dyn Texture>,
+  albedo: Arc<dyn Texture>,
 }
 
 impl Lambert {
-  pub fn color(r: f32, g: f32, b: f32) -> Lambert {
-    Lambert {
+  pub fn color(r: f32, g: f32, b: f32) -> Self {
+    Self {
       albedo: Arc::new(SolidColorTex::new(r, g, b)),
     }
   }
 
-  pub fn texture(t: Arc<dyn Texture>) -> Lambert {
-    Lambert { albedo: t.clone() }
+  pub fn texture(t: Arc<dyn Texture>) -> Self {
+    Self { albedo: t.clone() }
   }
 }
 
@@ -81,7 +83,7 @@ impl Material for Lambert {
     }
 
     BSDFResult {
-      attenuation: self.albedo.sample(hit),
+      diffuse: self.albedo.sample(hit),
       bounce: Some(Ray::new(hit.p, scatter_direction)),
       ..Default::default()
     }
@@ -103,7 +105,7 @@ impl Material for Metal {
     let scattered = Ray::new(hit.p, reflected + roughness_scatter);
 
     let mut result = BSDFResult {
-      attenuation: self.albedo,
+      diffuse: self.albedo,
       ..Default::default()
     };
     if scattered.dir.dot(hit.normal) > 0.0 {
@@ -143,7 +145,7 @@ impl Material for Dielectric {
     };
 
     BSDFResult {
-      attenuation: self.albedo,
+      diffuse: self.albedo,
       bounce: Some(Ray::new(hit.p, refracted)),
       ..Default::default()
     }

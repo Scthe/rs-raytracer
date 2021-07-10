@@ -34,18 +34,18 @@ impl Vec3 {
     random_in_unit_sphere().unit_vector()
   }
 
+  /** +x */
   pub fn right() -> Vec3 {
-    // +x
     Vec3::new(1.0, 0.0, 0.0)
   }
 
+  /** +y */
   pub fn up() -> Vec3 {
-    // +y
     Vec3::new(0.0, 1.0, 0.0)
   }
 
+  /** -z */
   pub fn forward() -> Vec3 {
-    // -z
     Vec3::new(0.0, 0.0, -1.0)
   }
 
@@ -57,6 +57,11 @@ impl Vec3 {
   }
   pub fn z(&self) -> Num {
     self.e[2]
+  }
+
+  pub fn is_zero(&self) -> bool {
+    let is_zero = |a: f32| a.abs() < 0.0001;
+    is_zero(self.x()) && is_zero(self.y()) && is_zero(self.z())
   }
 
   pub fn length(&self) -> Num {

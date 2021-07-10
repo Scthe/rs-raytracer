@@ -13,9 +13,10 @@ use rayon::prelude::*;
 mod aabb;
 mod bvh;
 mod camera;
-// mod light;
+mod light;
 mod material;
 mod ray;
+mod rectangle;
 mod scenes;
 mod sphere;
 mod texture;
@@ -45,10 +46,10 @@ fn trace_ray(r: &Ray, world: &dyn Traceable, depth: i32) -> Color {
       let bsdf_result = hit.material.bsdf(r, &hit);
       match bsdf_result.bounce {
         Some(r) => {
-          return bsdf_result.attenuation * trace_ray(&r, world, depth - 1);
+          return bsdf_result.emissive + bsdf_result.diffuse * trace_ray(&r, world, depth - 1);
         }
         _ => {
-          return bsdf_result.attenuation;
+          return bsdf_result.emissive;
         }
       }
     }
@@ -71,8 +72,8 @@ fn main() {
   ///////////////////////
   // World
   let mut world = World::new();
-  scenes::scene2::load_scene(&mut world);
-  let (cam_position, cam_look_at) = scenes::scene2::camera();
+  scenes::scene5::load_scene(&mut world);
+  let (cam_position, cam_look_at) = scenes::scene5::camera();
 
   ///////////////////////
   // BVH
