@@ -70,6 +70,12 @@ impl Lambert {
     }
   }
 
+  pub fn from_color(c: Color) -> Self {
+    Self {
+      albedo: Arc::new(SolidColorTex::from_color(c)),
+    }
+  }
+
   pub fn texture(t: Arc<dyn Texture>) -> Self {
     Self { albedo: t.clone() }
   }

@@ -29,7 +29,7 @@ noise = "0.7"
 log = "^0.4"
 simple_logger = "^1.11.0"
 # --MATH
-# glam = { version = "^0.11.0", features = ["debug-glam-assert"] }
+glam = "0.17.1"
 # --DOT ENV
 # dotenv = "0.15.0"
 # --PROFILER

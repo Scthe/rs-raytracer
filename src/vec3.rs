@@ -49,6 +49,24 @@ impl Vec3 {
     Vec3::new(0.0, 0.0, -1.0)
   }
 
+  pub fn from_glam(v: glam::f32::Vec3) -> Self {
+    Vec3::new(v.x, v.y, v.z)
+  }
+
+  pub fn to_glam(&self) -> glam::f32::Vec3 {
+    glam::f32::Vec3::new(self.x(), self.y(), self.z())
+  }
+
+  pub fn transform_mat4(&self, tfx: glam::f32::Mat4) -> Self {
+    let tfx_p = tfx.transform_point3(self.to_glam());
+    Vec3::from_glam(tfx_p)
+  }
+
+  pub fn transform_mat3(&self, tfx: glam::f32::Mat3) -> Self {
+    let tfx_p = tfx * self.to_glam();
+    Vec3::from_glam(tfx_p)
+  }
+
   pub fn x(&self) -> Num {
     self.e[0]
   }

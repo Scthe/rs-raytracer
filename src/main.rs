@@ -21,6 +21,7 @@ mod scenes;
 mod sphere;
 mod texture;
 mod traceable;
+mod transform;
 mod utils;
 mod vec3;
 mod world;
@@ -55,6 +56,8 @@ fn trace_ray(r: &Ray, world: &dyn Traceable, depth: i32) -> Color {
     }
     _ => {
       // return background
+      // TBH this is like an ambient light factor. If you set this to black,
+      // only emmisive materials make things visible
       let unit_direction = r.dir.unit_vector();
       let t = to_0_1(unit_direction.y());
       return lerp_vec3(Color::new(1.0, 1.0, 1.0), Color::new(0.5, 0.7, 1.0), t);
@@ -72,8 +75,8 @@ fn main() {
   ///////////////////////
   // World
   let mut world = World::new();
-  scenes::scene5::load_scene(&mut world);
-  let (cam_position, cam_look_at) = scenes::scene5::camera();
+  scenes::scene6::load_scene(&mut world);
+  let (cam_position, cam_look_at) = scenes::scene6::camera();
 
   ///////////////////////
   // BVH

@@ -3,6 +3,22 @@ use std::mem;
 use crate::ray::Ray;
 use crate::vec3::Point3d;
 
+fn point_min(p0: &Point3d, p1: &Point3d) -> Point3d {
+  Point3d::new(
+    p0.x().min(p1.x()), //
+    p0.y().min(p1.y()),
+    p0.z().min(p1.z()),
+  )
+}
+
+fn point_max(p0: &Point3d, p1: &Point3d) -> Point3d {
+  Point3d::new(
+    p0.x().max(p1.x()), //
+    p0.y().max(p1.y()),
+    p0.z().max(p1.z()),
+  )
+}
+
 /**
  * Axis-aligned bounding rectangular parallelepiped
  * ...
@@ -19,17 +35,24 @@ pub struct AABB {
 impl AABB {
   pub fn merge(box0: &AABB, box1: &AABB) -> AABB {
     AABB {
-      min: Point3d::new(
-        box0.min.x().min(box1.min.x()),
-        box0.min.y().min(box1.min.y()),
-        box0.min.z().min(box1.min.z()),
-      ),
-      max: Point3d::new(
-        box0.max.x().max(box1.max.x()),
-        box0.max.y().max(box1.max.y()),
-        box0.max.z().max(box1.max.z()),
-      ),
+      min: point_min(&box0.min, &box1.min),
+      max: point_max(&box0.max, &box1.max),
     }
+  }
+
+  pub fn from_point_cloud(points: &[Point3d]) -> AABB {
+    if points.len() < 1 {
+      panic!("Cannot create AABB from point cloud of 0 length")
+    }
+    let mut min = points[0].clone();
+    let mut max = points[0].clone();
+
+    for p in points {
+      min = point_min(&min, &p);
+      max = point_max(&max, &p);
+    }
+
+    AABB { min, max }
   }
 
   pub fn check_intersection(&self, r: &Ray, t_min_: f32, t_max_: f32) -> bool {
@@ -62,5 +85,20 @@ impl AABB {
     }
 
     true
+  }
+
+  pub fn to_points(&self) -> [Point3d; 8] {
+    let min = self.min;
+    let max = self.max;
+    [
+      Point3d::new(min.x(), min.y(), min.z()),
+      Point3d::new(min.x(), min.y(), max.z()),
+      Point3d::new(min.x(), max.y(), min.z()),
+      Point3d::new(min.x(), max.y(), max.z()),
+      Point3d::new(max.x(), max.y(), min.z()),
+      Point3d::new(max.x(), max.y(), max.z()),
+      Point3d::new(max.x(), min.y(), min.z()),
+      Point3d::new(max.x(), min.y(), max.z()),
+    ]
   }
 }

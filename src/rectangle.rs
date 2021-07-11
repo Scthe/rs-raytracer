@@ -14,7 +14,7 @@ pub struct Rectangle {
   pub y0: f32,
   pub y1: f32,
   /** point when following along normal, just like `t` in Ray */
-  pub k: f32,
+  pub k: f32, // TODO remove 'k', make it always 0
   pub material: Arc<dyn Material>,
 }
 

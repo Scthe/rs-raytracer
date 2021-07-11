@@ -92,7 +92,7 @@ impl Texture for NoiseTex {
 use image::io::Reader as ImageReader;
 use std::path::Path;
 
-// TODO add support for alpha
+// TODO add support for alpha channel
 #[derive(Debug)]
 pub struct ImageTex {
   image: image::RgbaImage,
@@ -109,8 +109,8 @@ impl ImageTex {
 
 impl Texture for ImageTex {
   fn sample(&self, hit: &RayHit) -> Color {
-    let x = self.image.width() as f32 * hit.u;
-    let y = self.image.height() as f32 * hit.v;
+    let x = self.image.width() as f32 * hit.u.clamp(0.0, 0.99999);
+    let y = self.image.height() as f32 * hit.v.clamp(0.0, 0.99999);
     let p = self.image.get_pixel(x as u32, y as u32);
     Color::new(
       p[0] as f32 / 255.0,

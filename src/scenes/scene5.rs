@@ -2,7 +2,7 @@ use log::info;
 use std::sync::Arc;
 
 use crate::light::DiffuseLight;
-use crate::material::{Dielectric, Lambert, Metal, SolidColor};
+use crate::material::{Dielectric, Lambert};
 use crate::rectangle::Rectangle;
 use crate::sphere::Sphere;
 use crate::vec3::{Color, Point3d, Vec3};
