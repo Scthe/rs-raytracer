@@ -1,6 +1,7 @@
 use log::info;
 use std::sync::Arc;
 
+use super::scene_settings::SceneSettings;
 use crate::light::DiffuseLight;
 use crate::material::{Dielectric, Lambert};
 use crate::rectangle::Rectangle;
@@ -9,8 +10,12 @@ use crate::vec3::{Color, Point3d, Vec3};
 use crate::world::World;
 
 #[allow(dead_code)]
-pub fn camera() -> (Point3d, Point3d) {
-  (Point3d::new(5.0, 2.0, 0.0), Point3d::new(0.0, 0.1, 0.0))
+pub fn settings() -> SceneSettings {
+  SceneSettings {
+    camera_position: Point3d::new(5.0, 2.0, 0.0),
+    camera_target: Point3d::new(0.0, 0.1, 0.0),
+    ..Default::default()
+  }
 }
 
 #[allow(dead_code)]

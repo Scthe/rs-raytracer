@@ -40,6 +40,14 @@ impl AABB {
     }
   }
 
+  /** Huge AABB to skip BVH and debug problems */
+  pub fn ginormous() -> AABB {
+    AABB {
+      min: Point3d::uni(-999999999.0),
+      max: Point3d::uni(999999999.0),
+    }
+  }
+
   pub fn from_point_cloud(points: &[Point3d]) -> AABB {
     if points.len() < 1 {
       panic!("Cannot create AABB from point cloud of 0 length")

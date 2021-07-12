@@ -43,8 +43,6 @@ impl BVHNode {
     start_idx: usize,
     end_idx: usize,
   ) -> BVHNode {
-    // TODO wrap in quick Rc?
-    // OR return BVHNode here, and will fill aabb later. We have children here after all
     let objects_count = end_idx - start_idx;
     let mock_aabb = AABB {
       min: Vec3::zero(),

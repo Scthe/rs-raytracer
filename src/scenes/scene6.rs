@@ -3,6 +3,7 @@ use log::info;
 use std::path::Path;
 use std::sync::Arc;
 
+use super::scene_settings::SceneSettings;
 use crate::material::Lambert;
 use crate::rectangle::Rectangle;
 use crate::sphere::Sphere;
@@ -12,8 +13,12 @@ use crate::vec3::{Color, Point3d};
 use crate::world::World;
 
 #[allow(dead_code)]
-pub fn camera() -> (Point3d, Point3d) {
-  (Point3d::new(5.0, 5.0, 5.0), Point3d::new(0.0, 0.0, 0.0))
+pub fn settings() -> SceneSettings {
+  SceneSettings {
+    camera_position: Point3d::new(5.0, 5.0, 5.0),
+    camera_target: Point3d::new(0.0, 0.0, 0.0),
+    ..Default::default()
+  }
 }
 
 #[allow(dead_code)]

@@ -1,3 +1,4 @@
+use std::fmt;
 use std::sync::Arc;
 use std::vec::Vec;
 
@@ -60,5 +61,13 @@ impl Traceable for World {
     }
 
     result
+  }
+}
+
+impl fmt::Debug for World {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    f.debug_struct("World")
+      .field("objects", &self.objects.len())
+      .finish()
   }
 }

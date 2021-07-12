@@ -41,10 +41,12 @@ impl Transform {
     match obj_bb {
       None => None,
       Some(bb) => {
-        let points = bb.to_points();
-        let tfx_points = &points.iter().map(|p| p.transform_mat4(transform));
-        let a: Vec<Point3d> = tfx_points.to_owned().collect();
-        Some(AABB::from_point_cloud(&a))
+        Some(AABB::ginormous()) // TODO debug
+
+        // let points = bb.to_points();
+        // let tfx_points = &points.iter().map(|p| p.transform_mat4(transform));
+        // let a: Vec<Point3d> = tfx_points.to_owned().collect();
+        // Some(AABB::from_point_cloud(&a))
       }
     }
   }
@@ -76,6 +78,10 @@ impl Traceable for Transform {
           .normal
           .transform_mat4(self.transform_inverse)
           .unit_vector();
+        let (is_front_face, outward_normal) =
+          RayHit::check_is_front_face(&offseted_ray, hit.normal);
+        hit.front_face = is_front_face;
+        // hit.normal = outward_normal;
         // rec.set_face_normal(rotated_r, normal); // ?
 
         Some(hit)
