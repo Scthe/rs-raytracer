@@ -9,6 +9,7 @@ use crate::material::Lambert;
 use crate::rectangle::Rectangle;
 use crate::transform::Transform;
 use crate::vec3::{Color, Point3d};
+use crate::volumetric::Volumetric;
 use crate::world::World;
 
 use super::scene_settings::SceneSettings;
@@ -19,7 +20,7 @@ pub fn settings() -> SceneSettings {
     camera_position: Point3d::new(0.0, 0.0, -3.0),
     // camera_position: Point3d::new(3.0, 2.0, -3.0),
     camera_target: Point3d::new(0.0, 0.0, 0.0),
-    background: Color::zero(),
+    // background: Color::zero(),
     samples_per_pixel: 50,
     max_bounces: 10,
     ..Default::default()
@@ -69,36 +70,37 @@ pub fn load_scene(world: &mut World) {
 
   // left
   let tfx = Mat4::from_rotation_y(-dgr_90);
-  let celling = Transform::new(tfx, rect_red);
-  world.add(Arc::new(celling));
+  let obj = Transform::new(tfx, rect_red);
+  world.add(Arc::new(obj));
 
   // right
   let tfx = Mat4::from_rotation_y(dgr_90);
-  let celling = Transform::new(tfx, rect_teal);
-  world.add(Arc::new(celling));
+  let obj = Transform::new(tfx, rect_teal);
+  world.add(Arc::new(obj));
 
   // TODO add glass sphere infront
   let dgr_30 = 30.0_f32.to_radians();
   let dgr_15 = 15.0_f32.to_radians();
   let mat_box = Arc::new(Lambert::from_color(Color::uni(1.0)));
+  let density = 0.7;
 
   // box1 - left
   let dims = Point3d::new(0.4, 0.8, 0.4);
-  let box0 = BoxPrim::new(dims, mat_box.clone());
   let tfx0 = Mat4::from_rotation_y(-dgr_15);
   let tfx1 = Mat4::from_translation(gVec3::new(-0.07, 0.12, -0.07));
-  // let tfx = tfx0 * tfx1;
-  let obj = Transform::new(tfx0, Arc::new(box0));
+  let obj = BoxPrim::new(dims, mat_box.clone());
+  let obj = Transform::new(tfx0, Arc::new(obj));
   let obj = Transform::new(tfx1, Arc::new(obj));
+  let obj = Volumetric::color(Arc::new(obj), density, Color::zero());
   world.add(Arc::new(obj));
 
   // box2 - left
   let dims = Point3d::new(0.4, 0.4, 0.4);
-  let box0 = BoxPrim::new(dims, mat_box);
   let tfx0 = Mat4::from_rotation_y(dgr_30);
   let tfx1 = Mat4::from_translation(gVec3::new(0.07, 0.2, 0.0));
-  // let tfx = tfx0 * tfx1;
-  let obj = Transform::new(tfx0, Arc::new(box0));
+  let obj = BoxPrim::new(dims, mat_box);
+  let obj = Transform::new(tfx0, Arc::new(obj));
   let obj = Transform::new(tfx1, Arc::new(obj));
+  let obj = Volumetric::color(Arc::new(obj), density, Color::one());
   world.add(Arc::new(obj));
 }

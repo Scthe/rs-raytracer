@@ -14,6 +14,7 @@ mod aabb;
 mod box_prim; // box is reserved Rust keyword
 mod bvh;
 mod camera;
+mod isotropic_mat;
 mod light;
 mod material;
 mod ray;
@@ -25,6 +26,7 @@ mod traceable;
 mod transform;
 mod utils;
 mod vec3;
+mod volumetric;
 mod world;
 
 use crate::bvh::BVHNode;
