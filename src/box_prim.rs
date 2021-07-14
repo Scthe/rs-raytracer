@@ -1,4 +1,5 @@
-use glam::f32::Mat4;
+use glam::f32::Mat3;
+use glam::f32::Vec3 as GVec3;
 use std::sync::Arc;
 
 use crate::aabb::AABB;
@@ -16,7 +17,6 @@ use crate::world::World;
 pub struct BoxPrim {
   box_min: Point3d,
   box_max: Point3d,
-  // dim: Vec3,
   side_planes: Arc<World>,
 }
 
@@ -41,18 +41,30 @@ impl BoxPrim {
     // top, bottom
     let h = half_dim(1);
     let rect = make_rect(0, 2, h);
-    let tfx = Mat4::from_rotation_x(dgr_90);
-    sides.add(Arc::new(Transform::new(tfx, rect.clone())));
-    let tfx = Mat4::from_rotation_x(-dgr_90);
-    sides.add(Arc::new(Transform::new(tfx, rect)));
+    sides.add(Arc::new(Transform::from_transform_rot(
+      Mat3::from_rotation_x(dgr_90),
+      GVec3::ZERO,
+      rect.clone(),
+    )));
+    sides.add(Arc::new(Transform::from_transform_rot(
+      Mat3::from_rotation_x(-dgr_90),
+      GVec3::ZERO,
+      rect.clone(),
+    )));
 
     // left, right
     let h = half_dim(0);
     let rect = make_rect(2, 1, h);
-    let tfx = Mat4::from_rotation_y(dgr_90);
-    sides.add(Arc::new(Transform::new(tfx, rect.clone())));
-    let tfx = Mat4::from_rotation_y(-dgr_90);
-    sides.add(Arc::new(Transform::new(tfx, rect)));
+    sides.add(Arc::new(Transform::from_transform_rot(
+      Mat3::from_rotation_y(dgr_90),
+      GVec3::ZERO,
+      rect.clone(),
+    )));
+    sides.add(Arc::new(Transform::from_transform_rot(
+      Mat3::from_rotation_y(dgr_90),
+      GVec3::ZERO,
+      rect.clone(),
+    )));
 
     // front, back
     let h = half_dim(2);
@@ -65,13 +77,16 @@ impl BoxPrim {
       side_planes: Arc::new(sides),
     }
   }
+
+  #[allow(dead_code)]
+  pub fn dims(&self) -> Vec3 {
+    self.box_max - self.box_min
+  }
 }
 
 impl Traceable for BoxPrim {
   fn bounding_box(&self) -> Option<AABB> {
     Some(AABB {
-      // min: Vec3::zero(),
-      // max: self.dim,
       min: self.box_min,
       max: self.box_max,
     })

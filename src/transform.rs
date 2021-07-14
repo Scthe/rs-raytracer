@@ -24,12 +24,40 @@ pub struct Transform {
 }
 
 impl Transform {
+  /*
+  // TODO finish this.
   pub fn new(transform: Mat4, object: Arc<dyn Traceable>) -> Self {
+    let aabb = Transform::calc_bounding_box(transform.inverse(), object.clone());
+    // let aabb = Transform::calc_bounding_box(transform, object.clone());
     Transform {
-      transform,
-      transform_inverse: transform.inverse(),
       object: object.clone(),
-      aabb: Transform::calc_bounding_box(transform, object),
+      // transform,
+      // transform_inverse: transform.inverse(),
+      // aabb: Transform::calc_bounding_box(transform.inverse(), object),
+      transform: transform.inverse(), // we manipulate ray, not the object. So moving object right 5u is same as movin ray -5u
+      transform_inverse: transform,
+      aabb,
+    }
+  }
+  */
+
+  pub fn from_transform_rot(
+    mat3: glam::f32::Mat3,
+    translation: glam::f32::Vec3,
+    object: Arc<dyn Traceable>,
+  ) -> Self {
+    let tfx0 = Mat4::from_mat3(mat3);
+    let tfx1 = Mat4::from_translation(translation);
+    let transform = tfx0 * tfx1;
+    let tfx1 = Mat4::from_translation(-translation); // WTF?
+    let transform_aabb = tfx1 * tfx0;
+    let aabb = Transform::calc_bounding_box(transform_aabb, object.clone());
+
+    Transform {
+      object: object.clone(),
+      transform, // we manipulate ray, not the object. So moving object right 5u is same as movin ray -5u
+      transform_inverse: transform.inverse(),
+      aabb,
     }
   }
 
@@ -41,12 +69,17 @@ impl Transform {
     match obj_bb {
       None => None,
       Some(bb) => {
-        Some(AABB::ginormous()) // TODO debug
+        // Some(AABB::ginormous()) // TODO debug
 
-        // let points = bb.to_points();
-        // let tfx_points = &points.iter().map(|p| p.transform_mat4(transform));
-        // let a: Vec<Point3d> = tfx_points.to_owned().collect();
-        // Some(AABB::from_point_cloud(&a))
+        // TODO just print this
+        // println!("calc_bb: {:?}", transform);
+        let points = bb.to_points();
+        let tfx_points = &points.iter().map(|p| p.transform_mat4(transform));
+        let a: Vec<Point3d> = tfx_points.to_owned().collect();
+        // for &bb in &a {
+        // println!("Tfx point: {:?}", bb);
+        // }
+        Some(AABB::from_point_cloud(&a))
       }
     }
   }
@@ -59,9 +92,11 @@ impl Traceable for Transform {
 
   fn check_intersection(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<RayHit> {
     let mat = self.transform;
+    let rot = glam::f32::Mat3::from_mat4(mat);
     let offseted_ray = Ray {
       origin: r.origin.transform_mat4(mat),
-      dir: r.dir.transform_mat4(mat), // do not normalize!
+      // dir: r.dir.transform_mat4(mat), // do not normalize!
+      dir: r.dir.transform_mat3(rot), // do not normalize!
     };
 
     let result = self.object.check_intersection(&offseted_ray, t_min, t_max);
@@ -74,15 +109,18 @@ impl Traceable for Transform {
         // this is.. complicated. I've followed the book, but:
         // 1. I think this may deform normals (inverse for normals was not just a usuall inverse)
         // 2. Recalc if front face - I don't think it is needed.
-        hit.normal = hit
+        let normal = hit
           .normal
-          .transform_mat4(self.transform_inverse)
+          // .transform_mat4(self.transform_inverse)
+          // .transform_mat4(self.transform)
+          // .transform_mat3(rot)
+          .transform_mat3(rot.inverse())
           .unit_vector();
-        let (is_front_face, outward_normal) =
-          RayHit::check_is_front_face(&offseted_ray, hit.normal);
-        hit.front_face = is_front_face;
+        // let (is_front_face, _outward_normal) = RayHit::check_is_front_face(&offseted_ray, normal);
+        // hit.front_face = is_front_face;
+        // hit.normal = !outward_normal;
         // hit.normal = outward_normal;
-        // rec.set_face_normal(rotated_r, normal); // ?
+        hit.normal = normal;
 
         Some(hit)
       }

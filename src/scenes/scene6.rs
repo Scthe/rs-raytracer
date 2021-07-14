@@ -1,4 +1,5 @@
-use glam::f32::Mat4;
+use glam::f32::Mat3;
+use glam::f32::Vec3 as GVec3;
 use log::info;
 use std::path::Path;
 use std::sync::Arc;
@@ -54,8 +55,10 @@ pub fn load_scene(world: &mut World) {
   let tex = ImageTex::new(Path::new("assets/test_texture.png"));
   let mat = Arc::new(Lambert::texture(Arc::new(tex)));
   let raw_obj = Rectangle::new((-size, -size), (size, size), 0.0, mat);
-
-  let mat_r = Mat4::from_rotation_x(dgr.to_radians());
-  let obj = Transform::new(mat_r, Arc::new(raw_obj));
+  let obj = Transform::from_transform_rot(
+    Mat3::from_rotation_x(dgr.to_radians()),
+    GVec3::ZERO,
+    Arc::new(raw_obj),
+  );
   world.add(Arc::new(obj));
 }

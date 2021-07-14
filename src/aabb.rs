@@ -1,7 +1,7 @@
 use std::mem;
 
 use crate::ray::Ray;
-use crate::vec3::Point3d;
+use crate::vec3::{Point3d, Vec3};
 
 fn point_min(p0: &Point3d, p1: &Point3d) -> Point3d {
   Point3d::new(
@@ -40,6 +40,7 @@ impl AABB {
     }
   }
 
+  #[allow(dead_code)]
   /** Huge AABB to skip BVH and debug problems */
   pub fn ginormous() -> AABB {
     AABB {
@@ -108,5 +109,10 @@ impl AABB {
       Point3d::new(max.x(), min.y(), min.z()),
       Point3d::new(max.x(), min.y(), max.z()),
     ]
+  }
+
+  #[allow(dead_code)]
+  pub fn dims(&self) -> Vec3 {
+    self.max - self.min
   }
 }

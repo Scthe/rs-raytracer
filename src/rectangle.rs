@@ -35,8 +35,8 @@ impl Traceable for Rectangle {
   fn bounding_box(&self) -> Option<AABB> {
     // since plane has infini-small depth, we pad it a bit
     Some(AABB {
-      min: Point3d::new(self.x0, self.y0, self.k - 0.0001),
-      max: Point3d::new(self.x1, self.y1, self.k + 0.0001),
+      min: Point3d::new(self.x0, self.y0, self.k + 0.1),
+      max: Point3d::new(self.x1, self.y1, self.k - 0.1),
     })
   }
 

@@ -22,6 +22,7 @@ pub struct Volumetric {
 }
 
 impl Volumetric {
+  #[allow(dead_code)]
   pub fn color(shape: Arc<dyn Traceable>, density: f32, color: Color) -> Self {
     Self {
       density,
@@ -30,6 +31,7 @@ impl Volumetric {
     }
   }
 
+  #[allow(dead_code)]
   pub fn texture(shape: Arc<dyn Traceable>, density: f32, t: Arc<dyn Texture>) -> Self {
     Self {
       density,

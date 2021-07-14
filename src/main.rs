@@ -75,12 +75,14 @@ fn main() {
   log::set_max_level(log::LevelFilter::Trace);
 
   info!("-- START! --");
+  let start_time = std::time::Instant::now();
 
   ///////////////////////
   // World
   let mut world = World::new();
   scenes::scene7::load_scene(&mut world);
   let cfg = scenes::scene7::settings();
+  info!("{:?}", cfg);
 
   ///////////////////////
   // BVH
@@ -142,5 +144,7 @@ fn main() {
   ///////////////////////
   // Save output
   img.save("output.png").unwrap();
-  info!("-- DONE --");
+
+  let s = start_time.elapsed().as_secs();
+  info!("-- DONE in {}min {}s --", s / 60, s % 60);
 }

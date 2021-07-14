@@ -2,10 +2,12 @@ use crate::vec3::{Color, Point3d, Vec3};
 use rand::Rng;
 
 /// change number in -1..1 range to 0..1
+#[allow(dead_code)]
 pub fn to_0_1(v: f32) -> f32 {
   0.5 * (v + 1.0)
 }
 
+#[allow(dead_code)]
 pub fn lerp_vec3(a: Vec3, b: Vec3, t: f32) -> Vec3 {
   a * (1.0 - t) + b * t
 }

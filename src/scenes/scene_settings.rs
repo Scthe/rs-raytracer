@@ -1,5 +1,6 @@
 use crate::vec3::{Color, Point3d};
 
+#[derive(Debug)]
 pub struct SceneSettings {
   pub camera_position: Point3d,
   pub camera_target: Point3d,
