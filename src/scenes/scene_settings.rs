@@ -19,8 +19,8 @@ impl Default for SceneSettings {
       camera_aperture: 0.0,
       camera_fov: 40.0,
       background: Color::one(),
-      samples_per_pixel: 50,
-      max_bounces: 10,
+      samples_per_pixel: 250,
+      max_bounces: 20,
     }
   }
 }

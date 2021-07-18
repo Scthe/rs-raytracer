@@ -9,6 +9,10 @@ use crate::vec3::{Color, Vec3};
 
 const IOR_AIR: f32 = 1.0; // blah, blah, vacuum, blah, blah
 
+/**
+Bidirectional Scattering Distribution Function result. e.g. light bounce direction,
+output color, emmisive for lights etc.
+*/
 pub struct BSDFResult {
   pub diffuse: Color,
   pub emissive: Color,
@@ -34,6 +38,11 @@ impl Default for BSDFResult {
 
 ///////////////////////
 // Material
+
+/**
+Describes color of light after it hits the surface. And some other properties
+e.g. when light penetrates the surface
+ */
 pub trait Material: fmt::Debug + Send + Sync {
   fn bsdf(&self, r_in: &Ray, hit: &RayHit) -> BSDFResult;
 }
@@ -127,6 +136,7 @@ impl Material for Metal {
 // Why is glass called dielectric?! I'm following the book here, but this
 // is the least interesting thing about dielectrics TBH.
 #[derive(Clone, Debug)]
+/** Material that can either reflect/refract depending on IOR. */
 pub struct Dielectric {
   pub albedo: Color,
   pub ior: f32, // https://en.wikipedia.org/wiki/List_of_refractive_indices

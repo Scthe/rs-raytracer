@@ -6,7 +6,7 @@
     {
       "label": "build",
       "type": "shell",
-      "command": "cargo build"
+      "command": "cargo build --release"
     },
     {
       "label": "run",

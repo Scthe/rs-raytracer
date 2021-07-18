@@ -47,15 +47,15 @@ impl Traceable for Volumetric {
   }
 
   fn check_intersection(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<RayHit> {
-    // Check where in global space we pass the volume. We ignore t_min, t_max,
-    // just whan to know if ray EVER is inside volume.
+    // Check where in global space we instersect with the volume. We ignore t_min, t_max.
+    // We just want to know if ray is EVER inside volume.
     // We assume shape is convex, so there is only one pair of entry-exit points
-    let maybe_hit1 = self
+    let maybe_hit1 = self // maybe entry
       .shape
       .check_intersection(r, -f32::INFINITY, f32::INFINITY);
     let maybe_both_hits = maybe_hit1
       .map(|hit0| {
-        let maybe_hit2 = self
+        let maybe_hit2 = self // maybe exit
           .shape
           .check_intersection(r, hit0.t + 0.0001, f32::INFINITY);
         maybe_hit2.map(|hit1| (hit0, hit1))
@@ -64,8 +64,11 @@ impl Traceable for Volumetric {
 
     match maybe_both_hits {
       Some((mut hit0, mut hit1)) => {
-        hit0.t = hit0.t.max(t_min);
+        hit0.t = hit0.t.max(t_min); // careful about NaNs, do not propagate them!
         hit1.t = hit1.t.min(t_max);
+        // Just the usuall sanity check. floating point errors etc.
+        // hit1 starts tracing from hit0 intersection, so we do not expect this to happen.
+        // We also took max/min just before.
         if hit0.t >= hit1.t {
           return None;
         }
@@ -75,6 +78,7 @@ impl Traceable for Volumetric {
         let ray_length = r.dir.length(); // e.g. transform does not normalize direction. Tho usually 1.0
         let distance_inside_boundary = (hit1.t - hit0.t) * ray_length;
         // we probabilistically bail out. This is not physics based, density is just 'some' value
+        // Smaller density == bigger hit_distance. Means more early bailing out.
         let mut rng = rand::thread_rng();
         let bounce_prob: f32 = rng.gen();
         let hit_distance = bounce_prob / self.density;
@@ -82,6 +86,7 @@ impl Traceable for Volumetric {
           return None;
         }
 
+        // we traveled from 'entrance' on 'surface' of the volume into it and intersected with something.
         let t = hit0.t + hit_distance / ray_length;
         Some(RayHit {
           p: r.at(t),
@@ -89,7 +94,7 @@ impl Traceable for Volumetric {
           u: hit0.u,
           v: hit0.v,
           material: self.phase_function.clone(),
-          // Volume describes smth. e.g. like particles suspended in the air. The ray bounces
+          // Volume describes e.g. particles suspended in the air. The ray bounces
           // will rarely be in the same direction. TBH there are a few probability functions
           // that describe this behavour, like Rayleigh scattering. It all depends e.g. on
           // wavelength of light ray etc.

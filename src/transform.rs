@@ -6,7 +6,7 @@ use crate::ray::Ray;
 use crate::traceable::{RayHit, Traceable};
 use crate::vec3::Point3d;
 
-// The book has manual math and allows only roration around Y axis.
+// The book shows the math for rotation around Y axis with sines and cosines.
 // I'm not gonna pretend that I don't know the solution, so here
 // are the matrices.
 //
@@ -16,6 +16,7 @@ use crate::vec3::Point3d;
 // Even animation. ATM not sure why not..
 
 #[derive(Clone)]
+/** 3d transformation, like rotate and move. */
 pub struct Transform {
   transform: Mat4,
   transform_inverse: Mat4,
@@ -46,10 +47,12 @@ impl Transform {
     translation: glam::f32::Vec3,
     object: Arc<dyn Traceable>,
   ) -> Self {
-    let tfx0 = Mat4::from_mat3(mat3);
-    let tfx1 = Mat4::from_translation(translation);
+    let tfx0 = Mat4::from_mat3(mat3); // rotation matrix
+    let tfx1 = Mat4::from_translation(translation); // translation matrix
     let transform = tfx0 * tfx1;
-    let tfx1 = Mat4::from_translation(-translation); // WTF?
+
+    // AABB: WTF? Done by trial and error
+    let tfx1 = Mat4::from_translation(-translation);
     let transform_aabb = tfx1 * tfx0;
     let aabb = Transform::calc_bounding_box(transform_aabb, object.clone());
 
@@ -69,16 +72,12 @@ impl Transform {
     match obj_bb {
       None => None,
       Some(bb) => {
-        // Some(AABB::ginormous()) // TODO debug
+        // Some(AABB::ginormous()) // debug
 
-        // TODO just print this
-        // println!("calc_bb: {:?}", transform);
+        // Get child AABB, transform by matrix, recalc AABB to be axis-aligned (in case there was a rotation)
         let points = bb.to_points();
         let tfx_points = &points.iter().map(|p| p.transform_mat4(transform));
         let a: Vec<Point3d> = tfx_points.to_owned().collect();
-        // for &bb in &a {
-        // println!("Tfx point: {:?}", bb);
-        // }
         Some(AABB::from_point_cloud(&a))
       }
     }
@@ -92,34 +91,29 @@ impl Traceable for Transform {
 
   fn check_intersection(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<RayHit> {
     let mat = self.transform;
+    // Rotation matrix from our transform. Assumes no scale/shear. Our ray direction is unit vector
+    // expressing rotation. It should not be translated, only rotated.
     let rot = glam::f32::Mat3::from_mat4(mat);
+    // Express ray from world space into object space (by using matrix)
     let offseted_ray = Ray {
       origin: r.origin.transform_mat4(mat),
-      // dir: r.dir.transform_mat4(mat), // do not normalize!
-      dir: r.dir.transform_mat3(rot), // do not normalize!
+      dir: r.dir.transform_mat3(rot), // do not normalize! Tho do not matter that much if we only rotate
     };
 
     let result = self.object.check_intersection(&offseted_ray, t_min, t_max);
     match result {
       None => None,
       Some(mut hit) => {
-        // revert from object to world space
+        // revert hit point from object to world space.
+        // TBH we could probably just do `hit.p = r.at(hit.t)`
         hit.p = hit.p.transform_mat4(self.transform_inverse);
 
         // this is.. complicated. I've followed the book, but:
         // 1. I think this may deform normals (inverse for normals was not just a usuall inverse)
         // 2. Recalc if front face - I don't think it is needed.
-        let normal = hit
-          .normal
-          // .transform_mat4(self.transform_inverse)
-          // .transform_mat4(self.transform)
-          // .transform_mat3(rot)
-          .transform_mat3(rot.inverse())
-          .unit_vector();
-        // let (is_front_face, _outward_normal) = RayHit::check_is_front_face(&offseted_ray, normal);
-        // hit.front_face = is_front_face;
-        // hit.normal = !outward_normal;
-        // hit.normal = outward_normal;
+        let normal = hit.normal.transform_mat3(rot.inverse()).unit_vector();
+        // transform normal from object into world space. Again, only rotation is applied,
+        // since normal is unit-length vector
         hit.normal = normal;
 
         Some(hit)

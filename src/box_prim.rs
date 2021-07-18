@@ -11,12 +11,16 @@ use crate::transform::Transform;
 use crate::vec3::{Point3d, Vec3};
 use crate::world::World;
 
-// BTW: box is reserved Rust keyword
-
 #[derive(Clone, Debug)]
+/**
+3d box primitive. One plane may be bugged after last-minute change in transform, too lazy to fix it.
+
+BTW: `box` is reserved Rust keyword
+*/
 pub struct BoxPrim {
   box_min: Point3d,
   box_max: Point3d,
+  /** 6 planes that make up the box */
   side_planes: Arc<World>,
 }
 

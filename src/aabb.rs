@@ -19,20 +19,22 @@ fn point_max(p0: &Point3d, p1: &Point3d) -> Point3d {
   )
 }
 
-/**
- * Axis-aligned bounding rectangular parallelepiped
- * ...
- * ...
- * just call it
- * `Axis Aligned Bounding Box` - AABB
- */
 #[derive(Clone, Debug, Copy)]
+/**
+Axis-aligned bounding rectangular parallelepiped
+...
+just call it
+`Axis Aligned Bounding Box` - AABB. <br/>
+
+Acceleration structure to use with BVH.
+*/
 pub struct AABB {
   pub min: Point3d,
   pub max: Point3d,
 }
 
 impl AABB {
+  /** Combine 2 AABBs */
   pub fn merge(box0: &AABB, box1: &AABB) -> AABB {
     AABB {
       min: point_min(&box0.min, &box1.min),

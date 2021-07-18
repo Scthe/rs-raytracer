@@ -3,6 +3,7 @@ use noise::{NoiseFn, Perlin};
 use crate::traceable::RayHit;
 use crate::vec3::Color;
 
+/** Image-like thing that can be sampled in 2d */
 pub trait Texture: Send + Sync + std::fmt::Debug {
   fn sample(&self, hit: &RayHit) -> Color;
 }
@@ -10,6 +11,7 @@ pub trait Texture: Send + Sync + std::fmt::Debug {
 ///////////////////////
 // SolidColorTex
 #[derive(Clone, Debug)]
+/** Texture that has a single color */
 pub struct SolidColorTex {
   color: Color,
 }
@@ -36,6 +38,7 @@ impl Texture for SolidColorTex {
 ///////////////////////
 // UV debug
 #[derive(Clone, Debug)]
+/** Texture that shows the UV coordinates */
 pub struct UVDebugTex {}
 
 impl Texture for UVDebugTex {
@@ -47,6 +50,7 @@ impl Texture for UVDebugTex {
 ///////////////////////
 // Checker
 #[derive(Clone, Debug)]
+/** Black and white checker texture */
 pub struct CheckerTex {
   pub color1: Color,
   pub color2: Color,
@@ -69,6 +73,7 @@ impl Texture for CheckerTex {
 ///////////////////////
 // Noise
 #[derive(Debug)]
+/** Random noise texture */
 pub struct NoiseTex {
   // Perlin, cause noise.rs has issues with other types. Check their github..
   // Also, Perlin is easier to analyze:
@@ -94,6 +99,7 @@ use std::path::Path;
 
 // TODO add support for alpha channel
 #[derive(Debug)]
+/** Image from file */
 pub struct ImageTex {
   image: image::RgbaImage,
 }

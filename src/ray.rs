@@ -3,8 +3,10 @@ use std::fmt;
 use crate::vec3::{Point3d, Vec3};
 
 #[derive(Clone, Debug, Copy)]
+/** Ray in 3d space. Starts at origin, in some direction. */
 pub struct Ray {
   pub origin: Point3d,
+  /** It's been already normalized (if it was needed) */
   pub dir: Vec3,
 }
 
@@ -16,6 +18,7 @@ impl Ray {
     }
   }
 
+  /** Get point along the ray */
   pub fn at(self, t: f32) -> Point3d {
     self.origin + (self.dir * t)
   }
@@ -28,7 +31,6 @@ impl Default for Ray {
 }
 
 impl fmt::Display for Ray {
-  // This trait requires `fmt` with this exact signature.
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "Ray(origin={}, dir={})", self.origin, self.dir)
   }

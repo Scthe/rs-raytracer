@@ -20,8 +20,8 @@ pub fn settings() -> SceneSettings {
     // camera_position: Point3d::new(3.0, 2.0, 3.0), // 45dgr
     camera_position: Point3d::new(0.0, 4.5, 0.5), // top
     camera_target: Point3d::new(0.0, 0.0, 0.0),
-    samples_per_pixel: 5,
-    max_bounces: 10,
+    // samples_per_pixel: 5,
+    // max_bounces: 10,
     ..Default::default()
   }
 }

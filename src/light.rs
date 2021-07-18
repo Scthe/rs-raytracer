@@ -37,7 +37,7 @@ impl Material for DiffuseLight {
     BSDFResult {
       diffuse: color,
       emissive: color * self.strength,
-      ..Default::default()
+      bounce: None, // important
     }
   }
 }

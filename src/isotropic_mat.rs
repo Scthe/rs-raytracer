@@ -6,12 +6,12 @@ use crate::texture::{SolidColorTex, Texture};
 use crate::traceable::RayHit;
 use crate::vec3::{Color, Vec3};
 
-/**
- * Isotropic := (of an object or substance) having a physical property which has the same value when measured in different directions.
- *
- * Sends bounces in random direction.
- */
 #[derive(Clone, Debug)]
+/**
+Isotropic := (of an object or substance) having a physical property which has the same value when measured in different directions.
+
+Sends bounces in random direction.
+*/
 pub struct IsotropicMat {
   albedo: Arc<dyn Texture>,
 }

@@ -47,13 +47,17 @@ fn trace_ray(r: &Ray, world: &dyn Traceable, depth: i32, background: &Color) -> 
   let result = world.check_intersection(r, ACNE_CORRECTION, f32::INFINITY);
   match result {
     Some(hit) => {
+      // we hit something!
       let bsdf_result = hit.material.bsdf(r, &hit);
       match bsdf_result.bounce {
         Some(r) => {
+          // do more bounces
           let bounce_result = trace_ray(&r, world, depth - 1, background);
           return bsdf_result.emissive + bsdf_result.diffuse * bounce_result;
         }
         _ => {
+          // e.g. light do not bounce light, but are the end of ray lifetime.
+          // If the `bsdf_result.emissive` is (0,0,0) this may effectively discard the ray.
           return bsdf_result.emissive;
         }
       }
@@ -94,7 +98,7 @@ fn main() {
   let aspect_ratio = 16.0 / 9.0;
   let dist_to_focus = (cfg.camera_position - cfg.camera_target).length();
   let aperture = cfg.camera_aperture;
-  let cam_fov = cfg.camera_fov; // scene1: 90.0
+  let cam_fov = cfg.camera_fov;
   let camera = Camera::new(
     cfg.camera_position,
     cfg.camera_target,
@@ -108,7 +112,7 @@ fn main() {
   ///////////////////////
   // Render
   info!("-- Tracing rays --");
-  let image_width: u32 = 400;
+  let image_width: u32 = 960;
   let image_height: u32 = (image_width as f32 / aspect_ratio) as u32;
   let mut img = image::RgbImage::new(image_width as u32, image_height as u32);
 
@@ -125,7 +129,7 @@ fn main() {
         let r = camera.get_ray(u, v);
         pixel_color = pixel_color + trace_ray(&r, &bvh, cfg.max_bounces, &cfg.background);
       }
-      pixel_color = pixel_color / (cfg.samples_per_pixel as f32);
+      pixel_color = pixel_color / (cfg.samples_per_pixel as f32); // average sample color
       pixel_color = gamma_correct(pixel_color, 2.2);
 
       (x, y, pixel_color)

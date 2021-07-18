@@ -3,14 +3,17 @@ use crate::utils::random_in_disk;
 use crate::vec3::{Point3d, Vec3};
 
 #[derive(Debug)]
+/** Virtual camera. Has position, aperture etc.  */
 pub struct Camera {
+  /** Position in 3d space */
   position: Point3d,
   horizontal: Vec3,
   vertical: Vec3,
+  /** Size of the hole through which the light gathers onto sensor. Large value == bokeh */
   aperture: f32,
   vec_right_global_space: Vec3,
   vec_up_global_space: Vec3,
-  // 3d space coordinates of lower left corner
+  /** 3d space coordinates of lower left corner */
   lower_left_corner: Point3d,
 }
 

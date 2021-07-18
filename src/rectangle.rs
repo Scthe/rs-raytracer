@@ -6,8 +6,8 @@ use crate::ray::Ray;
 use crate::traceable::{RayHit, Traceable};
 use crate::vec3::{Point3d, Vec3};
 
-/** ATM it's just a plane in xy space */
 #[derive(Clone, Debug)]
+/** Just a plane in xy space. Use transfrom to build other things from it */
 pub struct Rectangle {
   pub x0: f32,
   pub x1: f32,
@@ -42,18 +42,20 @@ impl Traceable for Rectangle {
 
   fn check_intersection(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<RayHit> {
     // intersection `t` between plane and ray
+    // This class is just XY plane, so only z coordinate matters for hit
     let t = (self.k - r.origin.z()) / r.dir.z();
     if t < t_min || t > t_max {
       return None;
     }
 
     // actual 3d point of ray-plane intersection
+    // check xy boundaries
     let p = r.at(t);
     if p.x() < self.x0 || p.x() > self.x1 || p.y() < self.y0 || p.y() > self.y1 {
       return None;
     }
 
-    let normal = !Vec3::forward();
+    let normal = !Vec3::forward(); // xy plane normal
     let (front_face, outward_normal) = RayHit::check_is_front_face(r, normal);
     Some(RayHit {
       p,

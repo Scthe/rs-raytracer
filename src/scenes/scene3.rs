@@ -19,7 +19,9 @@ pub fn settings() -> SceneSettings {
 
 #[allow(dead_code)]
 pub fn load_scene(world: &mut World) {
-  warn!("Scene3 is BVH test. It takes 1min for me with BVH, and I gave up after 1h without");
+  warn!(
+    "Scene3 is BVH test. e.g. on low settings it's 1min with BVH, and I gave up after 1h without"
+  );
 
   let mat_ground = Arc::new(Lambert::color(0.15, 0.3, 0.15)); // DO NOT USE SOLID COLOR HERE!
 

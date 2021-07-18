@@ -3,7 +3,7 @@ name = "rs-raytracer"
 version = "0.1.0"
 authors = ["Scthe <marcin1113C@gmail.com>"]
 edition = "2018"
-description = ""
+description = "Rust implementation of 'Ray Tracing in One Weekend'"
 repository = "https://github.com/scthe/rs-raytracer"
 license = "MIT"
 

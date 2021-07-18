@@ -6,6 +6,7 @@ use crate::ray::Ray;
 use crate::vec3::{Point3d, Vec3};
 
 #[derive(Clone, Debug)]
+/** Result of Ray hitting a Traceable */
 pub struct RayHit {
   /** Point of hit */
   pub p: Point3d,
@@ -38,6 +39,7 @@ impl RayHit {
   }
 }
 
+/** Object that can be hit by ray */
 pub trait Traceable: Send + Sync {
   fn check_intersection(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<RayHit>;
   fn bounding_box(&self) -> Option<AABB>;

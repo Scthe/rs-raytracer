@@ -20,21 +20,29 @@ pub fn color_f32_to_u8(col: Color) -> [u8; 3] {
   ]
 }
 
+/** Reflect vector `v` around normal `n` */
 pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
   v - n * (2.0 * v.dot(n))
 }
 
+/**
+Get angle of refraction after ray passes between 2 different mediums.
+Depending on angles and IORs, total internal reflection happens.
+Returns `None` in that case.
+
+https://en.wikipedia.org/wiki/Snell's_law#Total_internal_reflection_and_critical_angle
+*/
 pub fn refract(light_dir: Vec3, n: Vec3, ior_from: f32, ior_into: f32) -> Option<Vec3> {
   let etai_over_etat = ior_from / ior_into;
   let cos_theta = (!light_dir).dot(n).min(1.0);
   let sin_theta = (1.0 - cos_theta * cos_theta).sqrt(); // from Pythagorean identities
 
   // If in Snell's law  we have
-  //   $ sin(θ′) = (η / η′) * sin(θ) , where η′ are IORs
+  //   $ sin(θ′) = (η / η′) * sin(θ) , where η, η′ are IORs
   // we can have in some cases e.g.
   //   $ sin(θ′) = 1.5 * sin(θ)
   // which for some values of θ has no solution.
-  // e.g. when θ=1 the right side is 1.5 and sin(θ′) will never have this value
+  // e.g. when θ=90dgr the right side is 1.5 and sin(θ′) will never have this value
   let cannot_refract = etai_over_etat * sin_theta > 1.0;
   if cannot_refract {
     return None;
@@ -45,7 +53,7 @@ pub fn refract(light_dir: Vec3, n: Vec3, ior_from: f32, ior_into: f32) -> Option
   Some(r_out_perp + r_out_parallel)
 }
 
-// Schlick Approximation for reflection at angle
+/** Schlick Approximation for reflection at angle */
 pub fn reflectance_schlick(light_dir: Vec3, n: Vec3, ior_from: f32, ior_into: f32) -> f32 {
   let cos_theta = (!light_dir).dot(n).min(1.0);
   let mut r0 = (ior_from - ior_into) / (ior_from + ior_into);

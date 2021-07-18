@@ -9,6 +9,7 @@ use crate::traceable::{RayHit, Traceable};
 /** Used to store all traceables in the world */
 pub type WorldObjectsList = Vec<Arc<dyn Traceable>>;
 
+/** Collection of Traceable objects */
 pub struct World {
   pub objects: WorldObjectsList,
 }
